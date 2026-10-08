@@ -1,0 +1,27 @@
+#!/bin/bash -l
+#PBS -N cp_train
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# One training run. submit_all.sh passes TASK (detect|segment) and ARM
+# (baseline|copypaste) with qsub -v. To run one by hand:
+#   qsub -v TASK=detect,ARM=baseline job_train.pbs
+# If a job hits walltime, resubmit with RESUME=1 to continue from last.pt:
+#   qsub -v TASK=detect,ARM=baseline,RESUME=1 job_train.pbs
+cd $PBS_O_WORKDIR
+source ./config.sh
+module load Miniconda3
+source "$VENV/bin/activate"
+
+: "${TASK:?pass TASK=detect|segment}"
+: "${ARM:?pass ARM=baseline|copypaste}"
+EXTRA=""
+if [ "${RESUME:-0}" = "1" ]; then EXTRA="--resume"; fi
+
+python train_experiment.py \
+    --task "$TASK" --arm "$ARM" \
+    --epochs 150 --imgsz 1280 --batch -1 --workers 8 --seed 0 \
+    --wandb-project "$WANDB_PROJECT" $EXTRA

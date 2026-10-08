@@ -1,0 +1,40 @@
+#!/bin/bash -l
+#PBS -N yolo_detect_top10_n
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Nano (yolo26n), TOP-10-SPECIES subset -- same v2 restratified split as
+# job_detect_top10_m.pbs, just the model size changes. Logs to the same
+# runs_detect_top10 W&B project under a different run name so
+# nano/small/medium/large/xlarge all show up side by side on the same graph.
+#
+# cls-pw kept at 0.5 for comparability with the medium run.
+
+cd $PBS_O_WORKDIR
+
+module load Miniconda3
+source ~/yolo-venv/bin/activate
+
+# If compute nodes turn out to have no outbound internet (unlike the login
+# node), the wandb dashboard won't update live even though training itself
+# runs fine -- checked from a short interactive GPU job with:
+#   curl -sI --max-time 10 https://api.wandb.ai | head -1
+# If that hangs/errors on a compute node, uncomment the next line to log to
+# disk instead, then run `wandb sync <run_dir>` from the login node
+# periodically (even while this job is still running) to push it up.
+# export WANDB_MODE=offline
+
+python train_yolo.py \
+    --task detect \
+    --data data_detect_top10.yaml \
+    --model yolo26n.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --cls-pw 0.5 \
+    --project runs_detect_top10 \
+    --name aqua_run1

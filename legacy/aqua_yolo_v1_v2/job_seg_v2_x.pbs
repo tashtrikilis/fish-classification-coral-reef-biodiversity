@@ -1,0 +1,29 @@
+#!/bin/bash -l
+#PBS -N yolo_seg_v2_x
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Extra-large (yolo26x-seg), v2 restratified split + cls_pw=0.5 -- same
+# data/settings as job_seg_v2.pbs (nano)/_s/_m/_l, just the model size
+# changes. Logs to the same runs_seg_v2 W&B project under a different run
+# name so nano/small/medium/large/xlarge all show up side by side.
+
+cd $PBS_O_WORKDIR
+
+module load Miniconda3
+source ~/yolo-venv/bin/activate
+
+python train_yolo.py \
+    --task segment \
+    --data data_seg_v2.yaml \
+    --model yolo26x-seg.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --cls-pw 0.5 \
+    --project runs_seg_v2 \
+    --name aqua_run1_xlarge

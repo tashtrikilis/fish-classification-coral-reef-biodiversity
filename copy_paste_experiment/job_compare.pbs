@@ -1,0 +1,15 @@
+#!/bin/bash -l
+#PBS -N cp_compare
+#PBS -l select=1:ncpus=1:mem=4GB
+#PBS -l walltime=00:30:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Runs after all four training jobs: baseline vs copy-paste table + chart.
+cd $PBS_O_WORKDIR
+source ./config.sh
+module load Miniconda3
+source "$VENV/bin/activate"
+
+python compare_results.py --wandb-project "$WANDB_PROJECT"

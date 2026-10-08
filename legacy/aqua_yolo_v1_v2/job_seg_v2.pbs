@@ -1,0 +1,38 @@
+#!/bin/bash -l
+#PBS -N yolo_seg_v2
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# v2: restratified split (data_seg_v2.yaml / dataset_seg_v2) instead of the
+# original single-time-cutoff split -- see data_seg_v2.yaml's header for what
+# changed and why. Also turns on cls_pw=0.5 (inverse-class-frequency loss
+# weighting, dampened rather than full strength -- see train_yolo.py's module
+# docstring) to help further with the long-tailed class distribution.
+# Logs to a new W&B project (runs_seg_v2) so it doesn't mix with the old
+# split's results -- comparing the two isn't apples-to-apples otherwise.
+
+cd $PBS_O_WORKDIR
+
+# --- environment setup (confirmed on Aqua: no bare Python module, use Miniconda3) ---
+module load Miniconda3
+source ~/yolo-venv/bin/activate  # created once via:
+                                  #   module load Miniconda3
+                                  #   python3 -m venv ~/yolo-venv
+                                  #   source ~/yolo-venv/bin/activate
+                                  #   pip install -U ultralytics wandb
+
+# --- run training ---
+python train_yolo.py \
+    --task segment \
+    --data data_seg_v2.yaml \
+    --model yolo26n-seg.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --cls-pw 0.5 \
+    --project runs_seg_v2 \
+    --name aqua_run1

@@ -1,0 +1,76 @@
+# YOLO data.yaml for the INSTANCE SEGMENTATION model.
+# Same class taxonomy as data_detect.yaml (same 58 species) — Ultralytics
+# tells detect vs segment apart from the --task flag / model checkpoint
+# (-seg), not from this yaml.
+#
+# Dataset: temporal split of frame_1000-frame_1771 (772 frames total).
+#   train = frame_1000-frame_1617 (618 frames)
+#   val   = frame_1618-frame_1771 (154 frames)
+# 698 of the 772 frames have the real CVAT polygon label; the other 74 have
+# no fish and are included as background frames with an empty label file,
+# by your choice.
+
+path: dataset_seg
+train: images/train
+val: images/val
+# test: images/test
+
+names:
+  0: Acanthuridae
+  1: Black Triggerfish
+  2: Blackfin Chromis
+  3: Blackspot Sergeant
+  4: Blue Goatfish
+  5: Bluefin Trevally
+  6: Bluelined Surgeonfish
+  7: Bluespine Unicornfish
+  8: Bluestripe Snapper
+  9: Bridled Triggerfish
+  10: Brown Surgeonfish
+  11: Bullethead Unicornfish
+  12: Bullethead Parrotfish - Female
+  13: Chevron Tang
+  14: Chinese Trumpetfish
+  15: Convict Tang
+  16: Doublebar Goatfish
+  17: Forcepsfish
+  18: Fourspot Butterflyfish
+  19: Goldring Surgeonfish
+  20: Hawaiian Cleaner Wrasse
+  21: Hawaiian Gregory
+  22: Hawaiian Sergeant
+  23: Hawaiian Whitespotted Toby
+  24: Highfin Chub
+  25: Indo-Pacific Sergeant
+  26: Lei Triggerfish
+  27: Lined Butterflyfish
+  28: Lognnose Butterflyfish
+  29: Lowfin Chub
+  30: Manybar Goatfish
+  31: Moorish Idol
+  32: Multiband Butterflyfish
+  33: Orangeband Surgeonfish
+  34: Orangespine Unicornfish
+  35: Ornate Butterfly Fish
+  36: Oval Chromis
+  37: Palenose Parrotfish
+  38: Palenose Parrotfish - Male
+  39: Peacock Grouper
+  40: Pinktail Triggerfish
+  41: Pyramid Butterflyfish
+  42: Raccoon Butterflyfish
+  43: Redlip Parrotfish - Male
+  44: Redlip Parrotfish - Female
+  45: Speckled Parrotfish - Male
+  46: Spotted Boxfish
+  47: Stareye Parrotfish - Male
+  48: Stripebelly Puffer
+  49: Threadfin Butterflyfish
+  50: Whitebar Surgeonfish
+  51: Whitecheek Surgeonfish
+  52: Whitespotted Surgeonfish
+  53: Yellow Tang
+  54: Yellowfin Goatfish
+  55: Yellowtail Coris
+  56: Ringtail Surgeonfish
+  57: Saddle Wrasse - Male

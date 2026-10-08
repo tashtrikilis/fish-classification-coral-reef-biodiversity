@@ -1,0 +1,9 @@
+# YOLO26 needs a recent Ultralytics (8.4+)
+ultralytics>=8.4.0
+opencv-python>=4.8
+numpy>=1.24
+matplotlib>=3.7
+wandb>=0.17
+# for the notebooks
+jupyter
+nbformat

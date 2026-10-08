@@ -1,0 +1,43 @@
+#!/bin/bash -l
+#PBS -N yolo_seg
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M CHANGE_ME@qut.edu.au
+#PBS -j oe
+
+# ---- EDIT BEFORE SUBMITTING ----
+# Same notes as job_detect.pbs — check email address and resource sizing.
+
+cd $PBS_O_WORKDIR
+
+# --- environment setup (confirmed on Aqua: no bare Python module, use Miniconda3) ---
+module load Miniconda3
+source ~/yolo-venv/bin/activate  # created once via:
+                                  #   module load Miniconda3
+                                  #   python3 -m venv ~/yolo-venv
+                                  #   source ~/yolo-venv/bin/activate
+                                  #   pip install -U ultralytics wandb
+
+# --- Weights & Biases live logging ---
+# One-time setup on the LOGIN node (not here): `wandb login` (paste your API
+# key from wandb.ai/authorize) — this writes ~/.netrc so jobs like this one
+# pick up your credentials automatically, with no key in this script.
+# No code changes needed in train_yolo.py: Ultralytics auto-logs to W&B once
+# the package is installed + you're logged in, using --project/--name below
+# as the W&B project/run name. See README for the "does this GPU node have
+# internet" caveat — uncomment the next line to log offline and sync later
+# from the login node instead, if compute nodes turn out to be firewalled:
+# export WANDB_MODE=offline
+
+# --- run training ---
+python train_yolo.py \
+    --task segment \
+    --data data_seg.yaml \
+    --model yolo26n-seg.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --project runs_seg \
+    --name aqua_run1

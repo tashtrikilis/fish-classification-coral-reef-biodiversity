@@ -1,0 +1,84 @@
+# YOLO data.yaml for the BOUNDING BOX DETECTION model -- v2 SPLIT.
+#
+# Dataset: block-stratified split of frame_1000-frame_1771 (772 frames),
+# built by restratify_split.py -- NOT a simple time cutoff like the original
+# data_detect.yaml. Frames were grouped into contiguous 12-frame blocks, then
+# blocks were assigned to train/val so that every class spanning 2+ blocks
+# gets at least one block on each side (before this, a single time cutoff
+# meant 5 species were val-only -- guaranteed zero recall, model never
+# trained on them -- and 20 more were train-only and never evaluated at all).
+#   train = 612 frames
+#   val   = 160 frames
+# Result: 19 of the 34 species that appear anywhere in this window now have
+# real train+val coverage (up from 9). 0 species are val-only any more.
+# 3 species are still train-only despite spanning 2+ blocks (a limitation of
+# the greedy assignment, not of the data). 12 species are confined to a
+# single 12-frame block in time and genuinely can't be split either way --
+# see restratify_split.py's printed report for the full list.
+# Labels converted from polygon -> bbox as min/max of the polygon points
+# (same conversion as the original dataset_detect, just re-split).
+
+path: dataset_detect_v2    # dataset root, relative to this yaml's location
+train: images/train        # folder of training images
+val: images/val            # folder of validation images
+# test: images/test        # optional
+
+names:
+  0: Acanthuridae
+  1: Black Triggerfish
+  2: Blackfin Chromis
+  3: Blackspot Sergeant
+  4: Blue Goatfish
+  5: Bluefin Trevally
+  6: Bluelined Surgeonfish
+  7: Bluespine Unicornfish
+  8: Bluestripe Snapper
+  9: Bridled Triggerfish
+  10: Brown Surgeonfish
+  11: Bullethead Unicornfish
+  12: Bullethead Parrotfish - Female
+  13: Chevron Tang
+  14: Chinese Trumpetfish
+  15: Convict Tang
+  16: Doublebar Goatfish
+  17: Forcepsfish
+  18: Fourspot Butterflyfish
+  19: Goldring Surgeonfish
+  20: Hawaiian Cleaner Wrasse
+  21: Hawaiian Gregory
+  22: Hawaiian Sergeant
+  23: Hawaiian Whitespotted Toby
+  24: Highfin Chub
+  25: Indo-Pacific Sergeant
+  26: Lei Triggerfish
+  27: Lined Butterflyfish
+  28: Lognnose Butterflyfish
+  29: Lowfin Chub
+  30: Manybar Goatfish
+  31: Moorish Idol
+  32: Multiband Butterflyfish
+  33: Orangeband Surgeonfish
+  34: Orangespine Unicornfish
+  35: Ornate Butterfly Fish
+  36: Oval Chromis
+  37: Palenose Parrotfish
+  38: Palenose Parrotfish - Male
+  39: Peacock Grouper
+  40: Pinktail Triggerfish
+  41: Pyramid Butterflyfish
+  42: Raccoon Butterflyfish
+  43: Redlip Parrotfish - Male
+  44: Redlip Parrotfish - Female
+  45: Speckled Parrotfish - Male
+  46: Spotted Boxfish
+  47: Stareye Parrotfish - Male
+  48: Stripebelly Puffer
+  49: Threadfin Butterflyfish
+  50: Whitebar Surgeonfish
+  51: Whitecheek Surgeonfish
+  52: Whitespotted Surgeonfish
+  53: Yellow Tang
+  54: Yellowfin Goatfish
+  55: Yellowtail Coris
+  56: Ringtail Surgeonfish
+  57: Saddle Wrasse - Male

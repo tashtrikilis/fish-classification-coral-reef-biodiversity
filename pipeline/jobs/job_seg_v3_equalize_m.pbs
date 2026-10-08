@@ -1,0 +1,41 @@
+#!/bin/bash -l
+#PBS -N yolo_seg_v3_equalize_m
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Medium (yolo26m-seg.pt), v3 dataset (all 58 species, v3 restratified split) + copy-paste augmentation
+# (equalize toward the largest class's real instance count). Built by run_v3_pipeline.sh from the CVAT mask export with
+# occluded/edge-cut donor filtering -- see copy_paste_augment.py's docstring
+# for what "equalize" means. data_seg_v3_equalize.yaml already lists both the real train
+# images and the train_synth_equalize synthetic ones as its train: paths, so
+# nothing extra is needed here beyond pointing --data at it.
+# Logs to its own runs_seg_v3_equalize W&B project.
+
+cd $PBS_O_WORKDIR
+
+module load Miniconda3
+source ~/yolo-venv/bin/activate
+
+# If compute nodes turn out to have no outbound internet (unlike the login
+# node), the wandb dashboard won't update live even though training itself
+# runs fine -- checked from a short interactive GPU job with:
+#   curl -sI --max-time 10 https://api.wandb.ai | head -1
+# If that hangs/errors on a compute node, uncomment the next line to log to
+# disk instead, then run `wandb sync <run_dir>` from the login node
+# periodically (even while this job is still running) to push it up.
+# export WANDB_MODE=offline
+
+python train_yolo.py \
+    --task segment \
+    --data data_seg_v3_equalize.yaml \
+    --model yolo26m-seg.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --cls-pw 0.5 \
+    --project runs_seg_v3_equalize \
+    --name aqua_run1_medium

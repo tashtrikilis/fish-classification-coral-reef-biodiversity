@@ -1,0 +1,46 @@
+#!/bin/bash -l
+#PBS -N yolo_seg_top10_m
+#PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
+#PBS -l walltime=24:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Medium (yolo26m-seg), TOP-10-SPECIES subset -- same v2 restratified split as
+# job_seg_v2_m.pbs, but data_seg_top10.yaml only has the 10 most common
+# species (built by filter_topk_classes.py from dataset_seg_v2, labels
+# filtered + renumbered 0-9, images/split unchanged). Logs to its own
+# runs_seg_top10 W&B project so it doesn't mix with the 58-class runs_seg_v2
+# results.
+#
+# cls-pw kept at 0.5 for comparability with the earlier runs, though the
+# imbalance is much milder here (top class ~760 instances vs 10th ~36-40,
+# roughly 20:1 rather than the 700:1+ the full 58-class taxonomy had with its
+# singleton classes) -- worth trying --cls-pw 0.0 as a follow-up to see if it
+# even matters anymore at this class count.
+
+cd $PBS_O_WORKDIR
+
+module load Miniconda3
+source ~/yolo-venv/bin/activate
+
+# If compute nodes turn out to have no outbound internet (unlike the login
+# node), the wandb dashboard won't update live even though training itself
+# runs fine -- checked from a short interactive GPU job with:
+#   curl -sI --max-time 10 https://api.wandb.ai | head -1
+# If that hangs/errors on a compute node, uncomment the next line to log to
+# disk instead, then run `wandb sync <run_dir>` from the login node
+# periodically (even while this job is still running) to push it up.
+# export WANDB_MODE=offline
+
+python train_yolo.py \
+    --task segment \
+    --data data_seg_top10.yaml \
+    --model yolo26m-seg.pt \
+    --epochs 150 \
+    --imgsz 1280 \
+    --batch -1 \
+    --workers 8 \
+    --cls-pw 0.5 \
+    --project runs_seg_top10 \
+    --name aqua_run1_medium
