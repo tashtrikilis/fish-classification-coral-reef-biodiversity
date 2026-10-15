@@ -1,0 +1,232 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}\usepackage{mathptmx}\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{graphicx,booktabs,array,tabularx,float,xcolor,enumitem}\usepackage[font=small,labelfont=bf]{caption}
+\setlist{itemsep=1pt,topsep=2pt}\setlength{\parskip}{4pt}\setlength{\parindent}{0pt}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\title{\vspace{-12mm}Post-hoc analyses of the cross-validated copy-paste experiment\\\large Error analysis, detection versus segmentation, and augmentation versus model capacity}
+\author{EGH490 -- analysis notes (12 October 2026)}\date{}
+\begin{document}\maketitle\vspace{-8mm}
+
+\section*{0. Data, validity and common methods}
+\begin{itemize}
+\item \textbf{No retraining or new inference.} All analyses use the test-fold predictions saved by the 120 finished models
+(6 set-ups $\times$ 2 arms $\times$ 5 folds $\times$ 2 seeds): every box with confidence $\geq 0.001$ (top-1 class, NMS IoU 0.7,
+$\le$300 per frame), and for segmentation the mask IoU of every prediction with every labelled fish. A CPU-only job re-packed these
+files, the ground truth, the training logs and the model sizes. The saved predictions contain only each box's top class, so
+second-choice species cannot be analysed.
+\item \textbf{Same partitions, no leakage.} Each frame is scored only by the model whose test fold contains it (checked for every
+prediction), using \texttt{folds.csv} and the ground-truth files of \texttt{cv\_evaluate.py}. Recomputing the published values from
+the re-packed predictions reproduced them exactly (e.g.\ medium detection focus-species AP50 0.335/0.424; medium segmentation mask
+AP50 0.308/0.458). A conservative check found that 7 of the 203 focus fish (all Orangespine Unicornfish, in two long encounters)
+have other frames of the same encounter in the training/validation pool of the model that scores them; all other focus fish are
+from encounters entirely outside that pool.
+\item \textbf{Uncertainty.} Paired block bootstrap: the 49 blocks of 30 frames resampled 2,000 times with the generator and seed used
+by \texttt{cv\_evaluate.py}; the same resample is applied to every model, so baseline/copy-paste, detection/segmentation and
+small/medium/large comparisons are all paired by block. Seeds are averaged within each resample. Intervals are 95\% percentile
+intervals; $p$ is the two-sided bootstrap $p$. Seed-to-seed variance is \emph{not} included.
+\item \textbf{Status.} These analyses were \emph{not} pre-registered. They are exploratory and the intervals are not adjusted for
+multiple comparisons; they should be reported as secondary and descriptive.
+\end{itemize}
+
+\section{Error analysis of the three focus species}
+\textbf{Operating point and definitions.} Confidence threshold $\tau = 0.25$ (the threshold of the reported precision and recall);
+box IoU threshold 0.5 for all set-ups (so detection and segmentation are compared on the same criterion). Predictions with
+confidence $\geq\tau$ are matched to labelled fish of the same class, highest confidence first (as in COCO/\texttt{cv\_evaluate.py}).
+Each labelled focus fish then falls into exactly one category, checked in this order:
+\begin{enumerate}[label=(\alph*)]
+\item \emph{Correct species} (TP): matched as above.
+\item \emph{Wrong species} (classification error): an unmatched prediction of another species with IoU $\geq 0.5$ and confidence
+$\geq\tau$ (predictions already matched to a neighbouring fish are excluded).
+\item \emph{Poorly localised} (localisation error): an unmatched prediction with $0.1 \le$ IoU $<0.5$ and confidence $\geq\tau$.
+\item \emph{Missed}: no prediction with IoU $\geq 0.1$ and confidence $\geq\tau$. Missed fish are further split by whether a
+\emph{correct-species} box with IoU $\geq 0.5$ exists below $\tau$. These sub-threshold scores are reported only as evidence of a weak
+signal, never as classifications (their median confidence is 0.02).
+\end{enumerate}
+False positives (unmatched focus-species predictions, confidence $\geq\tau$) are split into duplicates (IoU $\geq0.5$ with an
+already-matched fish of that species), wrong-species FPs (IoU $\geq0.5$ with a labelled fish of another species), poorly localised
+FPs, and FPs on \emph{unlabelled regions} (IoU $<0.1$ with every labelled fish). The last group may contain real but unlabelled
+fish; it was not re-annotated and should not be read as hallucination. Results below pool all six set-ups and both seeds (12
+models per arm; per-set-up results are in \texttt{components\_by\_setup.csv} and \texttt{err\_summary\_all.csv}).
+
+\begin{table}[H]\centering
+\caption{Fate of every labelled focus fish, baseline $\rightarrow$ copy-paste (pooled over 12 models per arm; 93, 77 and 33 fish).
+Second line: change with 95\% block-bootstrap interval; bold: interval excludes zero. pp = percentage points.}
+\label{tab:err}\footnotesize
+\begin{tabularx}{\linewidth}{@{}p{4.4cm}YYY@{}}\toprule
+Quantity & Forcepsfish & Orangespine Unicornfish & Convict Tang \\\midrule
+\input{tab_err.tex}
+\bottomrule\end{tabularx}\end{table}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_err_fate.pdf}
+\caption{What happened to every labelled focus fish, by species and arm (confidence $\geq0.25$, box IoU $\geq0.5$).}\label{fig:fate}\end{figure}
+
+\begin{table}[H]\centering\caption{Most frequent species confusions (counts per model, mean of 12 models; confidence $\geq0.25$,
+IoU $\geq0.5$). $^\dagger$Class spelt ``Lognnose'' in the label set.}\label{tab:conf}\footnotesize
+\begin{tabularx}{\linewidth}{@{}p{3.3cm}p{3.6cm}YY@{}}\toprule
+Species & Direction & Baseline & Copy-paste\\\midrule
+\input{tab_conf.tex}
+\bottomrule\end{tabularx}\end{table}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_err_confidence.pdf}
+\caption{Confidence of correct detections (TP), of wrong-species labels given to focus fish (FN), and of focus-species false
+positives on other species or on unlabelled regions. All predictions shown have confidence $\geq0.25$ by construction.}\label{fig:conf}\end{figure}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_err_size.pdf}
+\caption{Recall by fish size (shorter box side), baseline and copy-paste; $n$ = labelled fish per bin. Bins with few fish (e.g.\
+Convict Tang below 24 px) are not interpretable.}\label{fig:size}\end{figure}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_err_encounters.pdf}
+\caption{Recall per encounter (runs of frames $\le$15 apart), baseline to copy-paste; marker area $\propto$ fish in the encounter.}\label{fig:enc}\end{figure}
+
+\subsection*{Interpretation}
+\begin{itemize}
+\item \textbf{Baseline failures.} For all three species the largest failure category is a fish with no prediction at confidence
+$\geq0.25$ (Forcepsfish 40\%, Orangespine 67\%, Convict 52\% of fish). Wrong-species labels are the second category (25\%, 15\%,
+12\%); poor localisation is small (8\%, 3\%, 0\%). More than half of the missed fish (56--64\%) have a correct-species box below the threshold, but
+with very low confidence (median 0.02).
+\item \textbf{How copy-paste helped differed by species.} Forcepsfish gained mainly through fewer wrong-species labels ($-7.5$\,pp)
+and fewer poorly localised boxes ($-2.6$\,pp); the missed share did not change significantly. Convict Tang gained mainly through fewer
+missed fish ($-19.2$\,pp), with a smaller drop in wrong-species labels ($-4.0$\,pp). Orangespine Unicornfish changed little
+(recall $+4.1$\,pp; no category changed significantly).
+\item \textbf{Confusions.} Most Forcepsfish classification errors are Yellow Tang (22.7 of 93 fish per model at baseline, 15.6 with
+copy-paste). Orangespine Unicornfish is mostly confused with Brown Surgeonfish, and Convict Tang with Ornate Butterflyfish and
+Yellow Tang.
+\item \textbf{Cost in false positives.} Copy-paste raised focus-species false positives (pooled 47 $\rightarrow$ 63 per model), mainly
+by labelling other fish as Forcepsfish or Convict Tang (e.g.\ Ornate Butterflyfish labelled Convict Tang: 1.3 $\rightarrow$ 5.2 per
+model) and by more predictions on unlabelled regions. Precision did not change significantly for any species (Convict Tang
+$-5.7$\,pp, interval $-13.1$ to $+7.1$).
+\item \textbf{Confidence.} Correct detections became more confident with copy-paste (median Convict Tang 0.74 $\rightarrow$ 0.90,
+Forcepsfish 0.76 $\rightarrow$ 0.81). Wrong-species labels and false positives have overlapping confidence distributions, so no single
+threshold separates them.
+\item \textbf{Size and encounters.} Recall increases with fish size for every species and arm. For Forcepsfish below 16\,px recall is
+0.03 (baseline) and 0.05 (copy-paste); the gains are concentrated in fish of 24\,px and larger. Copy-paste improved recall in 10 of
+12 Forcepsfish encounters (none worse), all 6 Convict Tang encounters, and 5 of 9 Orangespine encounters (2 worse). One
+Forcepsfish encounter (15 fish, median 12\,px) stays near zero under both arms.
+\end{itemize}
+
+\subsection*{Supported by the data versus hypotheses}
+\textbf{Supported:} the category shares and their changes in Table~\ref{tab:err} (within this footage, these partitions and this
+operating point); the dominant confusion pairs; that gains are concentrated in larger fish and spread over most encounters of
+Forcepsfish and Convict Tang; that false positives increased while precision did not change significantly.
+\textbf{Hypotheses only:} \emph{why} Forcepsfish is confused with Yellow Tang (e.g.\ shared colour) and \emph{why} copy-paste reduces
+that confusion (e.g.\ more varied examples) were not tested; whether predictions on unlabelled regions are real fish; whether tiny
+fish are missed because of image resolution. These are correlational observations, not causal mechanisms. Results depend on the
+chosen thresholds; a different $\tau$ moves fish between ``missed'' and ``correct''.
+
+\section{Does copy-paste help segmentation more than detection?}
+The pre-registered tests used box AP50 for detection and mask AP50 for segmentation, so they cannot show that the improvement
+magnitudes differ. Here the copy-paste effect ($\Delta$ = copy-paste $-$ baseline, seed-averaged) is computed for every model on
+\emph{both} box and mask metrics, and the \emph{difference in effects} between tasks at matched size is bootstrapped with the same
+block resamples for both tasks (difference-in-differences).
+
+\begin{table}[H]\centering\caption{Copy-paste effect on focus-species mean AP, by task and size, and the difference in effects
+(segmentation box $-$ detection box; $p$ in brackets). Last column: within segmentation, mask effect $-$ box effect.}\label{tab:task}
+\footnotesize\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llccccc@{}}\toprule
+Metric & Size & Det.\ (box) & Seg.\ (box) & Seg.\ (mask) & Seg.\ box $-$ det.\ box & Seg.\ mask $-$ box\\\midrule
+\input{tab_task.tex}
+\bottomrule\end{tabular}}\end{table}
+
+\begin{table}[H]\centering\caption{Difference in copy-paste effect per species, segmentation box AP50 $-$ detection box AP50.}\label{tab:taskspecies}
+\footnotesize\resizebox{\linewidth}{!}{\begin{tabular}{@{}lcccc@{}}\toprule Species & Small & Medium & Large & Mean of sizes\\\midrule
+\input{tab_task_species.tex}
+\bottomrule\end{tabular}}\end{table}
+
+\begin{table}[H]\centering\caption{Decomposition of the copy-paste effect for the pooled focus fish (confidence $\geq0.25$).
+Localisation: fish with an any-species box at IoU $\geq0.5$. Identification: correct species among localised fish. Cells:
+detection effect / segmentation effect, then segmentation $-$ detection with 95\% interval.}\label{tab:comp}\footnotesize
+\begin{tabularx}{\linewidth}{@{}p{4cm}YYY@{}}\toprule Component & Small & Medium & Large\\\midrule
+\input{tab_components.tex}
+\bottomrule\end{tabularx}\end{table}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_task_effects.pdf}
+\caption{Top: copy-paste effect (AP50) for detection (box) and segmentation (box and mask) at each size. Bottom: difference in
+effect, segmentation $-$ detection. Filled markers: interval excludes zero.}\label{fig:task}\end{figure}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_task_components.pdf}
+\caption{Copy-paste effect on recall, localisation and identification of focus fish for each set-up.}\label{fig:comp}\end{figure}
+
+\subsection*{Interpretation}
+\begin{itemize}
+\item \textbf{Metric choice does not explain the apparent difference.} Within segmentation, the mask-AP50 effect equals the box-AP50
+effect (mean difference $-0.000$, interval $-0.005$ to $+0.004$). Using mask AP for segmentation therefore did not inflate its
+effect at IoU 0.5; at AP50-95 the mask effect is slightly \emph{smaller} than the box effect ($-0.007$).
+\item \textbf{The task difference is not robust.} On the same metric (box AP50), the segmentation effect exceeds the detection
+effect by $+0.022$ (small), $+0.060$ (medium) and $+0.022$ (large). Only the medium difference has an interval excluding zero
+($+0.013$ to $+0.110$, $p=0.026$), which would not survive a correction for three sizes (Bonferroni $p\approx0.08$); averaged over sizes
+the difference is $+0.034$ ($-0.007$ to $+0.072$, $p=0.10$). No single species shows a consistent difference.
+\item \textbf{Components.} The routes by which copy-paste raised recall differ between set-ups without a consistent task pattern:
+at small size segmentation gained more in identification but less in localisation than detection; at large size the opposite;
+at medium neither differed. Net recall differences are not significant at any size.
+\item \textbf{Mask quality.} Copy-paste did not measurably change mask quality: the mask IoU of correctly detected focus fish was
+unchanged at every size (changes $-0.003$ to $+0.010$, all intervals include zero), and every box-matched segmentation detection had
+mask IoU $\geq 0.60$ (median 0.88). Mask quality is not the limiting factor for these species.
+\end{itemize}
+\textbf{Conclusion.} The evidence does not support a task-dependent augmentation effect. Both tasks benefit, by similar amounts once
+the same metric is used; the larger numbers for segmentation in the primary table come mainly from one size (medium) and lie within
+the statistical uncertainty. Segmentation should not be described as benefiting more. Caveats: detection and segmentation are
+different networks trained on different label formats, two seeds only, and seed variance is not in the intervals.
+
+\section{Targeted augmentation versus model capacity}
+\begin{table}[H]\centering\caption{Engineering trade-off. Parameters and GFLOPs from one trained checkpoint per architecture (58-class
+head), GFLOPs at the 1280-px input used in training and testing. Checkpoint: \texttt{best.pt} (FP16, optimiser stripped). Inference:
+median per-image GPU time during the batch-8 test validation on an NVIDIA H100 (Ultralytics ``inference'' timer, excluding pre- and
+post-processing) -- a throughput-style measurement on a data-centre GPU, \emph{not} a latency or edge-device benchmark. Training:
+mean wall-clock training loop per run; GPU-h: sum of PBS wall time over the 10 runs (one H100 each). AP50: box, pooled CV, mean of
+2 seeds.}\label{tab:cost}\footnotesize\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\begin{tabular}{@{}llrrrrrrccc@{}}\toprule
+Model & Arm & Params (M) & GFLOPs & Ckpt (MB) & H100 ms/img & Train min/run & GPU-h (10 runs) & Focus AP50 & Non-target AP50$^a$ & Any-fish AP50\\\midrule
+\input{tab_tradeoff.tex}
+\bottomrule\multicolumn{11}{l}{\footnotesize $^a$ Mean AP50 over the 17 well-labelled (${\geq}20$ instances) classes that were not augmented.}
+\end{tabular}}\end{table}
+
+\begin{table}[H]\centering\caption{Paired comparisons (box AP50, block bootstrap; bold: interval excludes zero).}\label{tab:cmp}
+\footnotesize\setlength{\tabcolsep}{3pt}\resizebox{\linewidth}{!}{\begin{tabular}{@{}llccc@{}}\toprule
+Task & Comparison & Focus-species mean & Non-target (17 classes) & Any fish\\\midrule
+\input{tab_tradeoff_cmp.tex}
+\bottomrule\end{tabular}}\end{table}
+
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figs/fig_tradeoff.pdf}
+\caption{Performance against inference compute (GFLOPs per 1280-px image, log scale) for the baseline and copy-paste version of each
+model; arrows show the copy-paste change. Augmentation does not change inference compute.}\label{fig:trade}\end{figure}
+
+\subsection*{Interpretation}
+\begin{itemize}
+\item \textbf{Inference cost.} Copy-paste leaves architecture, parameters, FLOPs, checkpoint size and measured H100 inference time
+unchanged; moving up one size increases GFLOPs by 1.1--3.5$\times$ (e.g.\ detection 95 $\rightarrow$ 305 $\rightarrow$ 380).
+\item \textbf{Training cost.} Copy-paste adds 450 synthetic images to about 820 real ones, raising time per epoch by about 50\% and
+training time per run by 22--67\% (runs also stop at different epochs) (e.g.\ medium detection 24 $\rightarrow$ 40 min). Generating the synthetic images took 2--5
+minutes of CPU time. The whole 120-run experiment used 84.6 H100 GPU-hours.
+\item \textbf{Augmented small vs baseline medium.} For the focus species the augmented small models are statistically
+indistinguishable from the baseline medium models (detection $+0.022$, $-0.040$ to $+0.088$; segmentation $+0.042$, $-0.007$ to $+0.103$),
+but they are worse on non-target species (detection $-0.039$) and on finding fish at all (any-fish $-0.026$ detection, $-0.025$
+segmentation). The augmented small model is not a substitute for the medium model.
+\item \textbf{Augmented medium vs baseline large.} The augmented medium models outperform the baseline large models on the focus
+species (detection $+0.051$, $+0.011$ to $+0.107$; segmentation $+0.100$, $+0.048$ to $+0.174$), with no loss on non-target species or
+any-fish AP50, at 80--88\% of the large model's FLOPs.
+\item \textbf{Augmentation versus capacity for under-represented species.} At medium size the augmentation gain exceeds the
+medium-to-large capacity gain (detection by $+0.051$, segmentation by $+0.100$, both intervals exclude zero); at small size the two
+gains are not distinguishable. Capacity, unlike augmentation, also improves the non-target species (small $\rightarrow$ medium:
+$+0.034$ detection, $+0.019$ segmentation), whereas augmentation's effect on non-target species is near zero.
+\item \textbf{No harm to non-target species.} Augmentation did not significantly reduce non-target AP50 or any-fish AP50 in any of the
+six set-ups (largest decreases $-0.005$ and $-0.010$, intervals include zero).
+\end{itemize}
+\textbf{Conclusion.} For a deployment that must keep a given model size, targeted augmentation improves the under-represented species
+at no inference cost and a modest one-off training cost, and at medium size it is a better route to those species than moving to
+the large model. It is not a replacement for adding capacity when overall species identification or fish detection matters, and none
+of these numbers describe performance on an edge device, which was not benchmarked.
+
+\section{Implications for the report}
+\begin{itemize}
+\item Replace ``copy-paste gave a gain similar to moving up one model size'' with the paired results: comparable to (not
+significantly different from) small$\rightarrow$medium for the target species only, and significantly better than medium$\rightarrow$large.
+The current sentence ``small detection with copy-paste (0.357) exceeded medium detection without it (0.335)'' compares point
+estimates; the difference is not significant.
+\item Do not state that segmentation benefits more; state that both tasks benefit by similar amounts on the same metric.
+\item Revise ``most missed Forcepsfish are predicted as background'': at $\tau=0.25$, 55\% of the Forcepsfish not correctly detected at
+baseline had no prediction, 34\% were labelled another species (almost all Yellow Tang) and 11\% were poorly localised.
+\item TODOs that can now be filled: optimiser AdamW (Ultralytics ``auto'', lr 0.000161) in all 120 runs; AutoBatch sizes 14/8/6
+(detection s/m/l) and 12/6/5 (segmentation); Ultralytics 8.4.126, PyTorch 2.13.0; 84.6 H100 GPU-hours (energy upper bound about
+59\,kWh at the 700\,W board power, not measured).
+\end{itemize}
+\end{document}

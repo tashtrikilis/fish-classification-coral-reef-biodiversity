@@ -1,0 +1,17 @@
+\begin{figure}[htb!]
+    \centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/a_naive_paste.png}
+        \caption{Direct paste}
+        \label{fig:blend_naive}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{Images/b_poisson_edge.png}
+        \caption{Edge-only Poisson blending}
+        \label{fig:blend_poisson}
+    \end{subfigure}
+    \caption[Effect of edge-only Poisson blending]{Close-up of the pasted Forcepsfish from Figure~\ref{fig:cp_steps} (receiver frame 1950) before and after blending. (a)~Copying the masked pixels directly leaves a hard, jagged boundary with a thin halo of donor background around the fish. (b)~Edge-only Poisson blending smooths the transition at the boundary while leaving the interior of the fish unchanged.}
+    \label{fig:blend_compare}
+\end{figure}

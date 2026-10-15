@@ -1,0 +1,32 @@
+\begin{table}[htbp]
+    \centering
+    \caption[Precision, recall and F1 for the focus species before and after copy-paste augmentation]{Precision, recall and F1-score for the three focus species before and after targeted copy-paste augmentation, aggregated over the six YOLO26 configurations and two training seeds.}
+    \label{tab:focus_prf}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.25}
+    \resizebox{\linewidth}{!}{%
+    \begin{tabular}{lcccccccc}
+        \toprule
+        & \multicolumn{3}{c}{\textbf{Precision}} & \multicolumn{3}{c}{\textbf{Recall}} & \multicolumn{2}{c}{\textbf{F1-score}} \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-9}
+        \textbf{Species} & \textbf{Base} & \textbf{Aug.} & \textbf{$\boldsymbol{\Delta}$ (pp) [95\% CI]} & \textbf{Base} & \textbf{Aug.} & \textbf{$\boldsymbol{\Delta}$ (pp) [95\% CI]} & \textbf{Base} & \textbf{Aug.} \\
+        \midrule
+        Forcepsfish ($n = 93$)             & 0.585 & 0.609 & $+2.4$ [$-3.1$, $+10.3$] & 0.272 & 0.407 & \textbf{+13.5} [$+7.0$, $+22.9$] & 0.371 & 0.488 \\
+        Orangespine Unicornfish ($n = 77$) & 0.363 & 0.414 & $+5.1$ [$-0.3$, $+13.2$] & 0.155 & 0.196 & \textbf{+4.1} [$+1.6$, $+9.3$]   & 0.217 & 0.266 \\
+        Convict Tang ($n = 33$)            & 0.590 & 0.533 & $-5.7$ [$-13.1$, $+7.1$] & 0.356 & 0.588 & \textbf{+23.2} [$+16.8$, $+34.9$] & 0.444 & 0.559 \\
+        \bottomrule
+    \end{tabular}}
+
+    \vspace{3pt}
+    \begin{minipage}{\linewidth}
+    \footnotesize\textit{Note.} Metrics are calculated at a confidence threshold of 0.25 and an IoU threshold of 0.5,
+    using bounding-box IoU for the three detection models and mask IoU for the three segmentation models. Predictions
+    from the five test folds are pooled within each of the 12 runs (6 configurations $\times$ 2 seeds), and the true
+    positive (TP), false positive (FP) and false negative counts of all 12 runs are then summed before computing
+    precision $= \text{TP}/(\text{TP}+\text{FP})$, recall $= \text{TP}/n_{\text{labelled}}$ and F1 $= 2PR/(P+R)$; $n$ is the
+    number of labelled test instances per run. Each prediction is matched to at most one labelled fish of the same species.
+    $\Delta$ = augmented minus baseline, in percentage points (pp). CIs are from 2,000 paired block-bootstrap resamples
+    of the 49 temporal blocks and are not corrected for multiple comparisons; bold marks a CI excluding zero.
+    \end{minipage}
+\end{table}

@@ -1,0 +1,17 @@
+#!/bin/bash -l
+#PBS -N cv_prep_grid
+#PBS -l select=1:ncpus=4:mem=16GB
+#PBS -l walltime=02:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Rebuilds the cross-validation data into data_cv2/ with segmentation roots added, then checks that its detection
+# data is byte-identical to data_cv/ (used by the medium detection runs). Fails if not, so no training job starts.
+cd $PBS_O_WORKDIR
+source ./config.sh
+module load Miniconda3
+source "$VENV/bin/activate"
+
+python cv_prepare.py --images-dir "$IMAGES_DIR" --out data_cv2 --force
+python cv_check_same_det.py data_cv data_cv2

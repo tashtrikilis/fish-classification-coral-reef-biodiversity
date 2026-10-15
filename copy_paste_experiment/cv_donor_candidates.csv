@@ -1,0 +1,54 @@
+species,idx,frame,instance,bbox_x,bbox_y,bbox_w,bbox_h,min_side_px,fill,view
+Orangespine Unicornfish,0,1014,4,650,565,33,35,33.0,0.64,pole/open-water or turning
+Orangespine Unicornfish,1,1020,4,462,592,64,33,33.0,0.61,pole/open-water or turning
+Orangespine Unicornfish,2,1021,0,478,580,51,34,34.0,0.67,pole/open-water or turning
+Orangespine Unicornfish,3,1024,3,501,612,58,30,30.0,0.69,pole/open-water or turning
+Orangespine Unicornfish,4,1026,2,471,600,62,37,37.0,0.56,pole/open-water or turning
+Orangespine Unicornfish,5,1029,1,581,550,53,32,32.0,0.55,pole/open-water or turning
+Orangespine Unicornfish,6,1038,2,790,480,41,42,41.0,0.46,pole/open-water or turning
+Orangespine Unicornfish,7,1259,4,286,249,53,33,33.0,0.6,allowed
+Orangespine Unicornfish,8,1343,4,1020,325,36,41,36.0,0.54,allowed
+Orangespine Unicornfish,9,1508,0,518,144,41,34,34.0,0.65,pole/open-water or turning
+Orangespine Unicornfish,10,1591,0,899,330,57,32,32.0,0.56,pole/open-water or turning
+Orangespine Unicornfish,11,1805,1,76,31,54,74,54.0,0.58,pole/open-water or turning
+Orangespine Unicornfish,12,1821,0,790,480,211,127,127.0,0.45,pole/open-water or turning
+Orangespine Unicornfish,13,1843,0,938,342,247,114,114.0,0.57,pole/open-water or turning
+Orangespine Unicornfish,14,1843,1,622,275,163,100,100.0,0.7,pole/open-water or turning
+Orangespine Unicornfish,15,2167,0,870,99,82,73,73.0,0.47,allowed
+Orangespine Unicornfish,16,2168,0,874,180,51,47,47.0,0.63,allowed
+Orangespine Unicornfish,17,2187,0,942,526,115,60,60.0,0.58,pole/open-water or turning
+Orangespine Unicornfish,18,2187,4,675,550,54,51,51.0,0.58,pole/open-water or turning
+Orangespine Unicornfish,19,2188,1,802,480,52,39,39.0,0.52,pole/open-water or turning
+Orangespine Unicornfish,20,2190,3,656,463,66,34,34.0,0.68,pole/open-water or turning
+Orangespine Unicornfish,21,2190,8,850,549,69,33,33.0,0.62,pole/open-water or turning
+Orangespine Unicornfish,22,2191,2,974,452,59,37,37.0,0.62,pole/open-water or turning
+Orangespine Unicornfish,23,2192,5,909,347,60,33,33.0,0.52,pole/open-water or turning
+Orangespine Unicornfish,24,2193,3,984,305,68,35,35.0,0.55,pole/open-water or turning
+Orangespine Unicornfish,25,2194,5,1013,269,74,37,37.0,0.51,pole/open-water or turning
+Orangespine Unicornfish,26,2197,0,485,126,73,33,33.0,0.65,pole/open-water or turning
+Orangespine Unicornfish,27,2199,0,120,366,65,50,50.0,0.54,pole/open-water or turning
+Orangespine Unicornfish,28,2199,1,218,272,49,43,43.0,0.53,pole/open-water or turning
+Orangespine Unicornfish,29,2200,0,296,156,39,38,38.0,0.49,pole/open-water or turning
+Convict Tang,0,18,1,943,85,40,74,40.0,0.57,not reviewed
+Convict Tang,1,22,7,1159,219,102,83,83.0,0.56,not reviewed
+Convict Tang,2,1018,4,847,23,49,32,32.0,0.68,pole/open-water or turning
+Convict Tang,3,1019,4,720,37,46,32,32.0,0.62,pole/open-water or turning
+Convict Tang,4,1019,6,606,32,50,33,33.0,0.66,pole/open-water or turning
+Convict Tang,5,2188,3,953,315,43,34,34.0,0.63,pole/open-water or turning
+Convict Tang,6,2189,3,711,295,57,40,40.0,0.7,pole/open-water or turning
+Convict Tang,7,2190,1,369,406,70,53,53.0,0.64,pole/open-water or turning
+Convict Tang,8,2213,0,496,374,65,31,31.0,0.71,pole/open-water or turning
+Convict Tang,9,2284,0,455,434,47,51,47.0,0.58,pole/open-water or turning
+Convict Tang,10,2285,0,736,287,32,32,32.0,0.77,pole/open-water or turning
+Convict Tang,11,2304,0,710,518,74,67,67.0,0.7,pole/open-water or turning
+Convict Tang,12,2304,1,676,397,92,60,60.0,0.69,pole/open-water or turning
+Convict Tang,13,2304,2,733,325,93,61,61.0,0.72,pole/open-water or turning
+Convict Tang,14,2305,1,773,570,94,55,55.0,0.63,pole/open-water or turning
+Convict Tang,15,2425,1,1105,305,96,65,65.0,0.6,allowed
+Convict Tang,16,2425,4,381,283,142,95,95.0,0.54,allowed
+Convict Tang,17,2426,1,378,26,92,50,50.0,0.65,allowed
+Convict Tang,18,2427,1,1191,437,61,51,51.0,0.75,allowed
+Convict Tang,19,2429,0,1096,207,54,57,54.0,0.65,allowed
+Convict Tang,20,2456,3,1161,88,55,58,55.0,0.58,allowed
+Convict Tang,21,2458,0,528,93,32,46,32.0,0.74,allowed
+Convict Tang,22,2459,2,1107,286,117,82,82.0,0.65,allowed

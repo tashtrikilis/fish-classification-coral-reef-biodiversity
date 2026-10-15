@@ -1,0 +1,9 @@
+species,scheme,arm,TP,FP,n_labelled_x12,precision,recall,F1
+Forcepsfish,det-box+seg-mask,baseline,303,215,1116,0.585,0.272,0.371
+Forcepsfish,det-box+seg-mask,augmented,454,292,1116,0.609,0.407,0.488
+Orangespine Unicornfish,det-box+seg-mask,baseline,143,251,924,0.363,0.155,0.217
+Orangespine Unicornfish,det-box+seg-mask,augmented,181,256,924,0.414,0.196,0.266
+Convict Tang,det-box+seg-mask,baseline,141,98,396,0.590,0.356,0.444
+Convict Tang,det-box+seg-mask,augmented,233,204,396,0.533,0.588,0.559
+Forcepsfish,box-all,baseline,299,219,1116,0.577,0.268,0.366
+Forcepsfish,box-all,augmented,450,296,1116,0.603,0.403,0.483

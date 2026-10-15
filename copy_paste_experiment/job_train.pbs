@@ -6,22 +6,35 @@
 #PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
-# One training run. submit_all.sh passes TASK (detect|segment) and ARM
-# (baseline|copypaste) with qsub -v. To run one by hand:
-#   qsub -v TASK=detect,ARM=baseline job_train.pbs
-# If a job hits walltime, resubmit with RESUME=1 to continue from last.pt:
-#   qsub -v TASK=detect,ARM=baseline,RESUME=1 job_train.pbs
+# One training run. The submit scripts pass TASK (detect|segment), ARM
+# (baseline|copypaste|copypaste_scaled) and SEED (default 0) with qsub -v.
+# Run name = <task>_<arm>, plus _s<seed> when SEED isn't 0. To run one by hand:
+#   qsub -v TASK=detect,ARM=baseline,SEED=1 job_train.pbs
+# Optional: IMGSZ (default 1280) and PROJECT (output folder, default runs), e.g.
+#   qsub -v TASK=detect,ARM=baseline,SEED=1,IMGSZ=2560,PROJECT=runs_i2560 job_train.pbs
+# If a job hits walltime, resubmit with the same values plus RESUME=1:
+#   qsub -v TASK=detect,ARM=baseline,SEED=1,RESUME=1 job_train.pbs
 cd $PBS_O_WORKDIR
+_WB_OVERRIDE="${WANDB_PROJECT:-}"   # a W&B project passed with qsub -v wins over config.sh
 source ./config.sh
+if [ -n "$_WB_OVERRIDE" ]; then WANDB_PROJECT="$_WB_OVERRIDE"; fi
 module load Miniconda3
 source "$VENV/bin/activate"
 
 : "${TASK:?pass TASK=detect|segment}"
-: "${ARM:?pass ARM=baseline|copypaste}"
+: "${ARM:?pass ARM=baseline|copypaste|copypaste_scaled}"
 EXTRA=""
 if [ "${RESUME:-0}" = "1" ]; then EXTRA="--resume"; fi
+# Optional (cross-validation): DATA_DIR, NAME, SAVE_PREDS=1, TAGS (colon-separated), GROUP
+if [ -n "${DATA_DIR:-}" ];  then EXTRA="$EXTRA --data-dir $DATA_DIR"; fi
+if [ -n "${NAME:-}" ];      then EXTRA="$EXTRA --name $NAME"; fi
+if [ "${SAVE_PREDS:-0}" = "1" ]; then EXTRA="$EXTRA --save-preds"; fi
+if [ -n "${TAGS:-}" ];      then EXTRA="$EXTRA --tags $TAGS"; fi
+if [ -n "${GROUP:-}" ];     then EXTRA="$EXTRA --wandb-group $GROUP"; fi
+if [ -n "${MODEL:-}" ];     then EXTRA="$EXTRA --model $MODEL"; fi   # e.g. yolo26s.pt, yolo26l-seg.pt
 
 python train_experiment.py \
     --task "$TASK" --arm "$ARM" \
-    --epochs 150 --imgsz 1280 --batch -1 --workers 8 --seed 0 \
+    --epochs 150 --imgsz "${IMGSZ:-1280}" --batch -1 --workers 8 --seed "${SEED:-0}" \
+    --project "${PROJECT:-runs}" \
     --wandb-project "$WANDB_PROJECT" $EXTRA

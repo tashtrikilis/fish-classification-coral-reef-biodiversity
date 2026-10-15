@@ -1,0 +1,15 @@
+#!/bin/bash -l
+#PBS -N cv_prepare
+#PBS -l select=1:ncpus=4:mem=16GB
+#PBS -l walltime=02:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Builds data_cv/: 5 cross-validation folds x (baseline, copypaste), with the synthetic images.
+cd $PBS_O_WORKDIR
+source ./config.sh
+module load Miniconda3
+source "$VENV/bin/activate"
+
+python cv_prepare.py --images-dir "$IMAGES_DIR" --force

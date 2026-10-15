@@ -1,0 +1,30 @@
+#!/bin/bash -l
+#PBS -N cv_eval_grid
+#PBS -l select=1:ncpus=2:mem=24GB
+#PBS -l walltime=12:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Evaluates one model setup of the grid. Pass CFG (e.g. detect_s, segment_m), IOU (box|mask) and optionally
+# EVAL_SETS (seed sets separated by '+', seeds within a set by ':'; default 0:1+0+1).
+cd $PBS_O_WORKDIR
+_WB_OVERRIDE="${WANDB_PROJECT:-}"   # a W&B project passed with qsub -v wins over config.sh
+source ./config.sh
+if [ -n "$_WB_OVERRIDE" ]; then WANDB_PROJECT="$_WB_OVERRIDE"; fi
+module load Miniconda3
+source "$VENV/bin/activate"
+
+: "${CFG:?pass CFG, e.g. segment_m}"
+IOU="${IOU:-box}"
+case "$CFG" in
+  detect_s) LABEL="yolo26s detection";;  detect_l) LABEL="yolo26l detection";;
+  segment_s) LABEL="yolo26s-seg";;  segment_m) LABEL="yolo26m-seg";;  segment_l) LABEL="yolo26l-seg";;
+  *) LABEL="$CFG";;
+esac
+for SET in $(echo "${EVAL_SETS:-0:1+0+1}" | tr '+' ' '); do
+    SEEDS="$(echo "$SET" | tr ':' ',')"
+    python cv_evaluate.py --data-dir data_cv2 --run-pattern "${CFG}_{arm}_f{k}{suffix}" --seeds "$SEEDS" \
+        --iou-type "$IOU" --label "$LABEL, $IOU AP" --out-name "cv_results_${CFG}_${IOU}_seeds$(echo "$SET" | tr ':' '-')" \
+        --wandb-project "$WANDB_PROJECT"
+done

@@ -7,6 +7,7 @@ with per-class metrics for the focus species (Forcepsfish, Moorish Idol by defau
     python3 train_experiment.py --task detect  --arm copypaste
     python3 train_experiment.py --task segment --arm baseline
     python3 train_experiment.py --task segment --arm copypaste
+    python3 train_experiment.py --task segment --arm copypaste_scaled --seed 1   # -> run name segment_copypaste_scaled_s1
 
 Everything except the training images is identical between the two arms: same split,
 same model, same hyperparameters, same seed. Ultralytics' own built-in copy_paste
@@ -41,7 +42,7 @@ DEFAULT_MODELS = {"detect": "yolo26m.pt", "segment": "yolo26m-seg.pt"}
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--task", required=True, choices=["detect", "segment"])
-    p.add_argument("--arm", required=True, choices=["baseline", "copypaste"])
+    p.add_argument("--arm", required=True, choices=["baseline", "copypaste", "copypaste_scaled"])
     p.add_argument("--data-dir", type=Path, default=HERE / "data")
     p.add_argument("--model", default=None, help="Default: yolo26m.pt / yolo26m-seg.pt")
     p.add_argument("--epochs", type=int, default=150)
@@ -54,13 +55,20 @@ def parse_args():
                    help="Inverse-class-frequency loss weighting (your v3 runs used 0.5). Default 0 = off, "
                         "so copy-paste is the only thing that differs between arms.")
     p.add_argument("--project", type=Path, default=HERE / "runs")
-    p.add_argument("--name", default=None, help="Default: <task>_<arm>")
-    p.add_argument("--focus", default="Forcepsfish,Moorish Idol")
+    p.add_argument("--name", default=None, help="Default: <task>_<arm>, plus _i<imgsz> when --imgsz isn't 1280 and _s<seed> when --seed isn't 0")
+    p.add_argument("--focus", default=None,
+                   help="Comma-separated focus species. Default: focus_species from <data-dir>/prepare_summary.json, "
+                        "else Forcepsfish,Moorish Idol")
     p.add_argument("--wandb-project", default="egh490-copypaste-experiment")
     p.add_argument("--wandb-entity", default=None)
     p.add_argument("--no-wandb", action="store_true")
     p.add_argument("--resume", action="store_true", help="Resume from <project>/<name>/weights/last.pt")
     p.add_argument("--fraction", type=float, default=1.0, help="Fraction of train set (smoke tests only).")
+    p.add_argument("--save-preds", action="store_true",
+                   help="Also save raw TEST predictions (conf>=0.001) to <run>/test_predictions.json, "
+                        "for pooling across cross-validation folds (cv_evaluate.py).")
+    p.add_argument("--tags", default="", help="Extra W&B tags separated by commas or colons, e.g. cv:fold3 (colons survive qsub -v)")
+    p.add_argument("--wandb-group", default=None, help="W&B group (default: the task)")
     return p.parse_args()
 
 
@@ -146,6 +154,85 @@ def write_summary_csv(metrics, path):
     return rows or []
 
 
+def _mask_ious(pred_polys, pred_boxes, gt_polys, w, h):
+    """Mask IoU of every prediction against every ground-truth instance of the image (any class).
+    Polygons in pixels. Each pair is rasterised only inside the union of its two bounding regions; pairs
+    whose regions don't overlap get 0. Returns a list (one per prediction) of lists (one per GT)."""
+    import cv2
+    import numpy as np
+    gts = []
+    for g in gt_polys:
+        x0, y0 = np.floor(g.min(0)).astype(int)
+        x1, y1 = np.ceil(g.max(0)).astype(int)
+        gts.append((g, max(0, x0), max(0, y0), min(w, x1 + 1), min(h, y1 + 1)))
+    out = []
+    for poly, (bx0, by0, bx1, by1) in zip(pred_polys, pred_boxes):
+        row = []
+        if poly is None or len(poly) < 3:
+            out.append([0.0] * len(gts))
+            continue
+        px0, py0 = np.floor(np.minimum(poly.min(0), [bx0, by0])).astype(int)
+        px1, py1 = np.ceil(np.maximum(poly.max(0), [bx1, by1])).astype(int)
+        px0, py0, px1, py1 = max(0, px0), max(0, py0), min(w, px1 + 1), min(h, py1 + 1)
+        for g, gx0, gy0, gx1, gy1 in gts:
+            if px1 <= gx0 or gx1 <= px0 or py1 <= gy0 or gy1 <= py0:
+                row.append(0.0)
+                continue
+            ux0, uy0, ux1, uy1 = min(px0, gx0), min(py0, gy0), max(px1, gx1), max(py1, gy1)
+            mp = np.zeros((uy1 - uy0, ux1 - ux0), np.uint8)
+            mg = np.zeros_like(mp)
+            cv2.fillPoly(mp, [np.round(poly - [ux0, uy0]).astype(np.int32)], 1)
+            cv2.fillPoly(mg, [np.round(g - [ux0, uy0]).astype(np.int32)], 1)
+            inter = int(np.logical_and(mp, mg).sum())
+            union = int(np.logical_or(mp, mg).sum())
+            row.append(round(inter / union, 4) if union else 0.0)
+        out.append(row)
+    return out
+
+
+def save_test_predictions(model, data_yaml, imgsz, out_path, task="detect"):
+    """Raw test-split predictions, one entry per image: [[class, conf, x1, y1, x2, y2], ...] in pixels.
+    conf >= 0.001 and NMS IoU 0.7, the same settings Ultralytics' own validation uses.
+    For segmentation each row gets a 7th element: the mask IoU of that prediction with every ground-truth
+    instance of the image, in the order of the image's label file (so cv_evaluate.py can pool mask AP)."""
+    import numpy as np
+    root, test = None, None
+    for line in data_yaml.read_text().splitlines():
+        if line.startswith("path:"):
+            root = Path(line.split(":", 1)[1].strip())
+        elif line.startswith("test:"):
+            test = line.split(":", 1)[1].strip()
+    test_dir = root / test if not Path(test).is_absolute() else Path(test)
+    label_dir = Path(str(test_dir).replace("/images/", "/labels/"))
+    preds = {}
+    for r in model.predict(source=str(test_dir), imgsz=imgsz, conf=0.001, iou=0.7, max_det=300,
+                           stream=True, verbose=False):
+        b = r.boxes
+        stem = Path(r.path).stem
+        rows = []
+        if b is not None and len(b):
+            xyxy = b.xyxy.cpu().numpy()
+            for c, cf, (x1, y1, x2, y2) in zip(b.cls.cpu().numpy(), b.conf.cpu().numpy(), xyxy):
+                rows.append([int(c), round(float(cf), 5), round(float(x1), 1), round(float(y1), 1),
+                             round(float(x2), 1), round(float(y2), 1)])
+        if task == "segment":
+            h, w = r.orig_shape
+            gt_polys = []
+            lf = label_dir / f"{stem}.txt"
+            for line in (lf.read_text().splitlines() if lf.exists() else []):
+                p = line.split()
+                if len(p) >= 7:
+                    gt_polys.append(np.array(p[1:], float).reshape(-1, 2) * [w, h])
+            if rows:
+                polys = list(r.masks.xy) if r.masks is not None else [None] * len(rows)
+                ious = _mask_ious(polys, [row[2:6] for row in rows], gt_polys, w, h)
+                for row, iou_row in zip(rows, ious):
+                    row.append(iou_row)
+        preds[stem] = rows
+    out_path.write_text(json.dumps(preds))
+    print(f"wrote {out_path} ({len(preds)} test images)")
+
+
 # --------------------------------------------------------------------------- main
 
 def main():
@@ -156,7 +243,8 @@ def main():
     data_yaml = args.data_dir / f"{kind}_{args.arm}.yaml"
     if not data_yaml.exists():
         raise FileNotFoundError(f"{data_yaml} not found -- run prepare_experiment.py first")
-    name = args.name or f"{args.task}_{args.arm}"
+    name = args.name or (f"{args.task}_{args.arm}" + (f"_i{args.imgsz}" if args.imgsz != 1280 else "")
+                         + (f"_s{args.seed}" if args.seed else ""))
     args.project = args.project.resolve()  # Ultralytics nests RELATIVE project paths under runs/<task>/
     run_dir = args.project / name
     summary_path = args.data_dir / "prepare_summary.json"
@@ -173,7 +261,8 @@ def main():
             if k.isdigit():
                 yaml_names[int(k)] = v.strip()
     names = yaml_names or names
-    focus = [s.strip() for s in args.focus.split(",") if s.strip()]
+    focus_str = args.focus or ",".join(prep.get("focus_species", [])) or "Forcepsfish,Moorish Idol"
+    focus = [s.strip() for s in focus_str.split(",") if s.strip()]
     focus_ids = {s: next(k for k, v in names.items() if v == s) for s in focus}
 
     # ---- W&B: we start the run ourselves so it has a proper name/group/config; Ultralytics'
@@ -185,7 +274,9 @@ def main():
             wb = wandb
             builtin_wandb = bool(settings.get("wandb", False))
             wandb.init(project=args.wandb_project, entity=args.wandb_entity, name=name,
-                       group=args.task, job_type=args.arm, tags=[args.task, args.arm] + focus,
+                       group=args.wandb_group or args.task, job_type=args.arm,
+                       tags=[args.task, args.arm, f"seed{args.seed}", f"imgsz{args.imgsz}"] + focus
+                            + [t.strip() for t in args.tags.replace(":", ",").split(",") if t.strip()],
                        id=(open(run_dir / "wandb_id.txt").read().strip()
                            if args.resume and (run_dir / "wandb_id.txt").exists() else None),
                        resume="allow",
@@ -262,7 +353,10 @@ def main():
             except Exception as e:
                 print(f"(W&B final logging problem: {e})")
 
-    out = {"task": args.task, "arm": args.arm, "name": name, "best_weights": str(best),
+    if args.save_preds:
+        save_test_predictions(final, data_yaml, args.imgsz, run_dir / "test_predictions.json", args.task)
+
+    out = {"task": args.task, "arm": args.arm, "seed": args.seed, "imgsz": args.imgsz, "name": name, "best_weights": str(best),
            "focus_species": focus, "metrics": results, "prepare": prep}
     (run_dir / "focus_metrics.json").write_text(json.dumps(out, indent=2))
     print(f"\nwrote {run_dir / 'focus_metrics.json'}")

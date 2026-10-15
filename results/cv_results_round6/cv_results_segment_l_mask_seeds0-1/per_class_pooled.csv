@@ -1,0 +1,83 @@
+class,arm,instances,AP50,AP50-95,P,R,F1,reliable
+Acanthuridae,baseline,56,0.0704,0.0493,0.1539,0.1429,0.1482,1
+Acanthuridae,copypaste,56,0.0592,0.0411,0.1695,0.125,0.1377,1
+Black Triggerfish,baseline,30,0.1742,0.1319,0.25,0.1667,0.1975,1
+Black Triggerfish,copypaste,30,0.1631,0.1179,0.2715,0.3667,0.3114,1
+Blackfin Chromis,baseline,310,0.4147,0.2453,0.5521,0.4097,0.4699,1
+Blackfin Chromis,copypaste,310,0.4052,0.2477,0.58,0.3742,0.452,1
+Blue Goatfish,baseline,9,0.2229,0.17,0.3833,0.2222,0.281,0
+Blue Goatfish,copypaste,9,0.1174,0.0867,0.25,0.1111,0.1538,0
+Bluefin Trevally,baseline,8,0.0,0.0,0.0,0.0,0.0,0
+Bluefin Trevally,copypaste,8,0.0,0.0,0.0,0.0,0.0,0
+Brown Surgeonfish,baseline,875,0.6735,0.5356,0.68,0.6823,0.6811,1
+Brown Surgeonfish,copypaste,875,0.6862,0.5424,0.6893,0.6783,0.6827,1
+Bullethead Unicornfish,baseline,14,0.1156,0.1078,0.1875,0.1786,0.1821,0
+Bullethead Unicornfish,copypaste,14,0.1495,0.1377,0.1429,0.0714,0.0952,0
+Bullethead Parrotfish - Female,baseline,18,0.0015,0.0011,0.0,0.0,0.0,0
+Bullethead Parrotfish - Female,copypaste,18,0.0033,0.0028,0.0,0.0,0.0,0
+Chevron Tang,baseline,5,0.0151,0.0132,0.0,0.0,0.0,0
+Chevron Tang,copypaste,5,0.0102,0.0092,0.0,0.0,0.0,0
+Chinese Trumpetfish,baseline,9,0.0,0.0,0.0,0.0,0.0,0
+Chinese Trumpetfish,copypaste,9,0.0,0.0,0.0,0.0,0.0,0
+Convict Tang,baseline,33,0.4634,0.3797,0.6491,0.3939,0.49,1
+Convict Tang,copypaste,33,0.5795,0.4848,0.6821,0.5758,0.6236,1
+Doublebar Goatfish,baseline,21,0.1923,0.1396,0.3857,0.119,0.1813,1
+Doublebar Goatfish,copypaste,21,0.3219,0.224,0.55,0.119,0.1954,1
+Forcepsfish,baseline,93,0.3938,0.2438,0.5672,0.2957,0.3887,1
+Forcepsfish,copypaste,93,0.5097,0.3454,0.6524,0.4624,0.5411,1
+Fourspot Butterflyfish,baseline,22,0.0,0.0,0.0,0.0,0.0,1
+Fourspot Butterflyfish,copypaste,22,0.0,0.0,0.0,0.0,0.0,1
+Goldring Surgeonfish,baseline,252,0.6819,0.5598,0.6831,0.7143,0.6984,1
+Goldring Surgeonfish,copypaste,252,0.711,0.5896,0.7041,0.7083,0.7062,1
+Hawaiian Cleaner Wrasse,baseline,1,0.0,0.0,0.0,0.0,0.0,0
+Hawaiian Cleaner Wrasse,copypaste,1,0.0,0.0,0.0,0.0,0.0,0
+Hawaiian Whitespotted Toby,baseline,15,0.1462,0.0927,0.4167,0.1333,0.2005,0
+Hawaiian Whitespotted Toby,copypaste,15,0.1957,0.1236,0.75,0.1,0.1765,0
+Highfin Chub,baseline,4,0.0,0.0,0.0,0.0,0.0,0
+Highfin Chub,copypaste,4,0.0,0.0,0.0,0.0,0.0,0
+Indo-Pacific Sergeant,baseline,6,0.0,0.0,0.0,0.0,0.0,0
+Indo-Pacific Sergeant,copypaste,6,0.0,0.0,0.0,0.0,0.0,0
+Lei Triggerfish,baseline,25,0.0869,0.0621,0.2875,0.1,0.1481,1
+Lei Triggerfish,copypaste,25,0.068,0.0532,0.2361,0.08,0.1194,1
+Lined Butterflyfish,baseline,7,0.0,0.0,0.0,0.0,0.0,0
+Lined Butterflyfish,copypaste,7,0.0,0.0,0.0,0.0,0.0,0
+Lognnose Butterflyfish,baseline,4,0.0,0.0,0.0,0.0,0.0,0
+Lognnose Butterflyfish,copypaste,4,0.0,0.0,0.0,0.0,0.0,0
+Lowfin Chub,baseline,41,0.0353,0.0302,0.1833,0.0244,0.043,1
+Lowfin Chub,copypaste,41,0.0233,0.0198,0.1667,0.0122,0.0227,1
+Manybar Goatfish,baseline,2,0.0,0.0,0.0,0.0,0.0,0
+Manybar Goatfish,copypaste,2,0.0,0.0,0.0,0.0,0.0,0
+Moorish Idol,baseline,143,0.5994,0.332,0.6383,0.5629,0.5969,1
+Moorish Idol,copypaste,143,0.6673,0.3767,0.7523,0.5699,0.6485,1
+Multiband Butterflyfish,baseline,21,0.0568,0.0399,0.0,0.0,0.0,1
+Multiband Butterflyfish,copypaste,21,0.1708,0.1224,0.25,0.0238,0.0435,1
+Orangeband Surgeonfish,baseline,568,0.3244,0.239,0.4574,0.3768,0.4125,1
+Orangeband Surgeonfish,copypaste,568,0.3254,0.2404,0.5037,0.3715,0.4276,1
+Orangespine Unicornfish,baseline,77,0.2251,0.1589,0.3747,0.2143,0.2717,1
+Orangespine Unicornfish,copypaste,77,0.244,0.1718,0.4701,0.2532,0.3291,1
+Ornate Butterfly Fish,baseline,99,0.4272,0.3117,0.6573,0.3485,0.4555,1
+Ornate Butterfly Fish,copypaste,99,0.3548,0.2622,0.6009,0.3182,0.4103,1
+Palenose Parrotfish - Male,baseline,1,0.0,0.0,0.0,0.0,0.0,0
+Palenose Parrotfish - Male,copypaste,1,0.0,0.0,0.0,0.0,0.0,0
+Pyramid Butterflyfish,baseline,1,0.0,0.0,0.0,0.0,0.0,0
+Pyramid Butterflyfish,copypaste,1,0.0,0.0,0.0,0.0,0.0,0
+Raccoon Butterflyfish,baseline,101,0.4193,0.3012,0.6973,0.3663,0.4787,1
+Raccoon Butterflyfish,copypaste,101,0.5172,0.3704,0.7468,0.3812,0.5046,1
+Redlip Parrotfish - Male,baseline,30,0.0009,0.0006,0.0,0.0,0.0,1
+Redlip Parrotfish - Male,copypaste,30,0.0025,0.0015,0.0147,0.0167,0.0156,1
+Redlip Parrotfish - Female,baseline,27,0.0027,0.0015,0.0,0.0,0.0,1
+Redlip Parrotfish - Female,copypaste,27,0.0019,0.0015,0.0,0.0,0.0,1
+Whitebar Surgeonfish,baseline,13,0.0195,0.0146,0.0,0.0,0.0,0
+Whitebar Surgeonfish,copypaste,13,0.0105,0.0069,0.0,0.0,0.0,0
+Whitecheek Surgeonfish,baseline,11,0.0003,0.0003,0.0,0.0,0.0,0
+Whitecheek Surgeonfish,copypaste,11,0.0704,0.0635,0.5,0.0455,0.0833,0
+Whitespotted Surgeonfish,baseline,11,0.0191,0.0144,0.0,0.0,0.0,0
+Whitespotted Surgeonfish,copypaste,11,0.0705,0.0568,0.125,0.0455,0.0667,0
+Yellow Tang,baseline,1119,0.8064,0.5636,0.7107,0.8177,0.7602,1
+Yellow Tang,copypaste,1119,0.8259,0.582,0.7196,0.861,0.7838,1
+Ringtail Surgeonfish,baseline,8,0.0,0.0,0.0,0.0,0.0,0
+Ringtail Surgeonfish,copypaste,8,0.0,0.0,0.0,0.0,0.0,0
+Saddle Wrasse - Male,baseline,8,0.0003,0.0002,0.0,0.0,0.0,0
+Saddle Wrasse - Male,copypaste,8,0.0006,0.0006,0.0,0.0,0.0,0
+Any fish (class-agnostic),baseline,4098,0.6797,0.4811,0.7259,0.617,0.667,0
+Any fish (class-agnostic),copypaste,4098,0.6836,0.4896,0.7441,0.6277,0.681,0

@@ -1,5 +1,9 @@
 # Data
 
+> **Final study data:** the 1,462 annotated frames (1000–2461) used in the report, with corrected labels and the
+> cross-validation folds, are in `kona_reef_fish_dataset_v1.zip` on the repository's Releases page. The files below
+> are the earlier full-length label exports.
+
 ## What's here
 
 | Path | Contents |

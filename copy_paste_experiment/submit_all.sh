@@ -1,6 +1,7 @@
 #!/bin/bash
 # Submits the whole experiment with job dependencies:
-#   prepare  ->  4 training jobs (detect/segment x baseline/copypaste, in parallel)  ->  compare
+#   Round 1: prepare  ->  4 training jobs (detect/segment x baseline/copypaste, seed 0)  ->  compare
+#   (round 2 -- seeds 1-2 and the size-matched arm -- is submit_round2.sh)
 # Run from this folder on the Aqua login node:  bash submit_all.sh
 # Set SKIP_PREPARE=1 to reuse an existing data/ folder.
 set -euo pipefail

@@ -1,0 +1,16 @@
+fold,species,instances,baseline_AP50,baseline_R,copypaste_AP50,copypaste_R
+0,Forcepsfish,24,0.6311,0.3125,0.6035,0.3125
+0,Orangespine Unicornfish,6,0.3371,0.25,0.4239,0.4167
+0,Convict Tang,5,0.8261,0.8,0.9717,1.0
+1,Forcepsfish,14,0.3774,0.3571,0.4322,0.3929
+1,Orangespine Unicornfish,15,0.1028,0.0,0.116,0.1
+1,Convict Tang,3,0.5827,0.5,0.9171,1.0
+2,Forcepsfish,16,0.4338,0.25,0.4735,0.375
+2,Orangespine Unicornfish,5,0.1417,0.2,0.4288,0.7
+2,Convict Tang,9,0.5382,0.3889,0.7374,0.6667
+3,Forcepsfish,16,0.394,0.4375,0.5643,0.5312
+3,Orangespine Unicornfish,21,0.1142,0.0714,0.3122,0.2619
+3,Convict Tang,7,0.0417,0.0,0.3717,0.2143
+4,Forcepsfish,23,0.3853,0.1739,0.6789,0.587
+4,Orangespine Unicornfish,30,0.2772,0.25,0.3233,0.2167
+4,Convict Tang,9,0.2574,0.1667,0.6027,0.6111
