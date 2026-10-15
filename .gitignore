@@ -33,3 +33,4 @@ supplementary_analysis/scripts/analysis_bundle/
 *.pkl
 *.tgz
 r6.json
+media/fonts/

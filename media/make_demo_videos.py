@@ -1,0 +1,110 @@
+"""Side-by-side demo videos: baseline vs copy-paste augmented, one video per focus species.
+
+Every frame shown is a TEST frame: it is predicted by the cross-validation fold model whose test set contains it,
+so neither model trained on it (and no donor was taken from it or from the 15-frame buffer around it).
+Model: YOLO26 Detection M, seed 0; predicted boxes with confidence >= 0.25.
+Drawn: every prediction. The video's species is orange; all other species are white (thinner boxes, smaller labels).
+
+The clips are illustrative: they were chosen as encounters where the baseline misses the fish and the augmented
+model finds it. They are not a random sample; the overall results are in ../results and ../supplementary_analysis.
+
+Usage (needs the dataset zip and analysis_bundle_public.tgz from the Releases page):
+  python make_demo_videos.py --images ../dataset/kona_reef_fish_dataset/images \
+      --bundle ../supplementary_analysis/scripts/analysis_bundle --fonts fonts
+"""
+import argparse, json, subprocess, tempfile
+from pathlib import Path
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
+ap = argparse.ArgumentParser()
+ap.add_argument('--images', type=Path, default=Path('../dataset/kona_reef_fish_dataset/images'))
+ap.add_argument('--bundle', type=Path, default=Path('../supplementary_analysis/scripts/analysis_bundle'))
+ap.add_argument('--fonts', type=Path, default=Path('fonts'), help='folder with Inter-400.ttf and Inter-700.ttf')
+ap.add_argument('--out', type=Path, default=Path(__file__).resolve().parent)
+ap.add_argument('--seconds-per-frame', type=float, default=1.5)
+a = ap.parse_args()
+
+SETUP, SEED, TAU, MODEL = 'detect_m', 0, 0.25, 'YOLO26 Detection M'
+CLIPS = {  # encounters (first frame, last frame); only frames where the species is labelled are shown
+    'Forcepsfish': [(1603, 1607), (2095, 2100), (2159, 2161)],
+    'Orangespine Unicornfish': [(1011, 1011), (1025, 1027), (1259, 1259), (1805, 1805), (2166, 2169), (2191, 2192)],
+    'Convict Tang': [(2188, 2190), (2425, 2427), (2456, 2456)],
+}
+W, H, S = 960, 540, 0.75                     # pane size and scale from 1280 x 720
+BAR, GAP = 64, 10
+NAVY, ORANGE, WHITE = (11, 37, 69), (242, 109, 61), (240, 240, 240)
+F_TITLE = ImageFont.truetype(str(a.fonts / 'Inter-700.ttf'), 28)
+F_LAB = ImageFont.truetype(str(a.fonts / 'Inter-700.ttf'), 17)
+F_SMALL = ImageFont.truetype(str(a.fonts / 'Inter-700.ttf'), 13)
+
+G = json.load(open(a.bundle / 'gt.json'))
+FIX = {'Bullethead Unicornfish': 'Bullethead Parrotfish', 'Lognnose Butterflyfish': 'Longnose Butterflyfish',
+       'Ornate Butterfly Fish': 'Ornate Butterflyfish'}
+NAMES = {int(k): FIX.get(v, v) for k, v in G['names'].items()}
+GT = {int(f): v for f, v in G['gt'].items()}
+
+
+def load(arm):
+    P = {}
+    for k in range(5):
+        z = np.load(a.bundle / f'preds/{SETUP}_{arm}_f{k}_s{SEED}.npz')
+        m = z['conf'] >= TAU
+        for f, c, s, b in zip(z['frame'][m], z['cls'][m], z['conf'][m], z['box'][m]):
+            P.setdefault(int(f), []).append((int(c), float(s), b))
+    return P
+
+
+PRED = {'baseline': load('baseline'), 'copypaste': load('copypaste')}
+
+
+def iou(p, q):
+    ix = max(0, min(p[2], q[2]) - max(p[0], q[0])); iy = max(0, min(p[3], q[3]) - max(p[1], q[1])); i = ix * iy
+    return i / ((p[2] - p[0]) * (p[3] - p[1]) + (q[2] - q[0]) * (q[3] - q[1]) - i + 1e-9)
+
+
+def label(d, x, y, text, bg, fg, font=F_LAB, pad=5):
+    l, t, r, b = d.textbbox((0, 0), text, font=font); tw, th = r - l, b - t
+    x = min(max(0, x), W - tw - 2 * pad); y = y - th - 2 * pad if y - th - 2 * pad >= 0 else y + 2
+    d.rectangle([x, y, x + tw + 2 * pad, y + th + 2 * pad], fill=bg)
+    d.text((x + pad - l, y + pad - t), text, font=font, fill=fg)
+
+
+def pane(f, arm, cid, title):
+    im = Image.open(a.images / f'frame_{f}.jpg').convert('RGB').resize((W, H), Image.LANCZOS)
+    d = ImageDraw.Draw(im)
+    preds = PRED[arm].get(f, [])
+    others = [(c, s, b) for c, s, b in preds if c != cid]
+    mine = [(c, s, b) for c, s, b in preds if c == cid]
+    for c, s, b in others:                                   # other species first, so the focus species is on top
+        x0, y0, x1, y1 = (float(v) * S for v in b)
+        d.rectangle([x0, y0, x1, y1], outline=WHITE, width=2)
+        label(d, int(x0), int(y0), f'{NAMES[c]} {s:.2f}', WHITE, NAVY, F_SMALL, 3)
+    for c, s, b in mine:
+        x0, y0, x1, y1 = (float(v) * S for v in b)
+        d.rectangle([x0, y0, x1, y1], outline=ORANGE, width=4)
+        label(d, int(x0), int(y0), f'{NAMES[c]} {s:.2f}', ORANGE, WHITE)
+    bar = Image.new('RGB', (W, BAR), NAVY); db = ImageDraw.Draw(bar)
+    l, t, r, b = db.textbbox((0, 0), title, font=F_TITLE)
+    db.text(((W - (r - l)) / 2 - l, (BAR - (b - t)) / 2 - t), title, font=F_TITLE, fill=WHITE)
+    out = Image.new('RGB', (W, BAR + H), NAVY); out.paste(bar, (0, 0)); out.paste(im, (0, BAR))
+    return out
+
+
+for sp, clips in CLIPS.items():
+    cid = next(k for k, v in NAMES.items() if v == sp)
+    with tempfile.TemporaryDirectory() as tmp:
+        n = 0
+        for f0, f1 in clips:
+            for f in range(f0, f1 + 1):
+                if not any(r[0] == cid for r in GT.get(f, [])):
+                    continue
+                canvas = Image.new('RGB', (2 * W + GAP, BAR + H), NAVY)
+                canvas.paste(pane(f, 'baseline', cid, f'Baseline ({MODEL})'), (0, 0))
+                canvas.paste(pane(f, 'copypaste', cid, f'Augmented ({MODEL})'), (W + GAP, 0))
+                canvas.save(f'{tmp}/{n:05d}.png'); n += 1
+        out = a.out / f"demo_{sp.lower().replace(' ', '_')}.mp4"
+        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', str(1 / a.seconds_per_frame),
+                        '-i', f'{tmp}/%05d.png', '-r', '30', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
+                        '-movflags', '+faststart', str(out)], check=True)
+        print(f'{out.name}: {n} frames, {n * a.seconds_per_frame:.0f} s')

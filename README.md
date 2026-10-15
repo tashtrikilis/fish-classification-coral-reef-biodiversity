@@ -22,8 +22,10 @@ improves recognition of under-represented fish species.
 
 ## Demo video
 
-*Coming soon:* a video comparing baseline and copy-paste-augmented detections on held-out test footage
-(see [`media/`](media/)).
+Baseline (left) vs augmented (right) detections on held-out test frames, YOLO26 Detection M:
+[Forcepsfish](media/demo_forcepsfish.mp4) · [Orangespine Unicornfish](media/demo_orangespine_unicornfish.mp4) ·
+[Convict Tang](media/demo_convict_tang.mp4). The clips are chosen examples where the baseline misses the fish, not a random sample.
+See [`media/`](media/) for details.
 
 ## Dataset
 
@@ -77,7 +79,7 @@ Focus-species mean AP50, baseline vs augmented:
 ├── copy_paste_experiment/   experiment code: folds, donor selection, copy-paste, training, evaluation (QUT Aqua / PBS)
 ├── results/                 cross-validation results for every configuration (seeds 0, 1 and 0+1)
 ├── supplementary_analysis/  scripts and tables that reproduce every table in the report from the saved predictions
-├── media/                   demo video (coming soon)
+├── media/                   demo videos (baseline vs augmented, one per focus species) and the script that makes them
 └── requirements.txt
 ```
 
