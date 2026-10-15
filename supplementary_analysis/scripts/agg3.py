@@ -21,7 +21,7 @@ for c in C.FOCUS_IDS:
         rows.append(dict(species=C.NAMES[c], size_bin=b, n_fish=nf, recall_base=r['baseline'][0], recall_cp=r['copypaste'][0],
                          delta=d[0], lo=np.percentile(db, 2.5), hi=np.percentile(db, 97.5),
                          missed_base=mis['baseline'], missed_cp=mis['copypaste'], wrong_base=wr['baseline'], wrong_cp=wr['copypaste']))
-S = pd.DataFrame(rows); S.to_csv('size_bins.csv', index=False); print(S.round(3).to_string())
+S = pd.DataFrame(rows); S.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'table10_recall_by_size.csv'), index=False); print(S.round(3).to_string())
 # encounters (no bootstrap: each encounter is a unit; report recall per encounter, mean over the 12 models)
 rows = []
 for c in C.FOCUS_IDS:
@@ -37,7 +37,7 @@ for c in C.FOCUS_IDS:
                          wrong_base=(sub[sub.arm == 'baseline'].cat == 'wrong_species').mean(),
                          wrong_cp=(sub[sub.arm == 'copypaste'].cat == 'wrong_species').mean()))
 E = pd.DataFrame(rows); E['delta'] = E.recall_cp - E.recall_base
-E.to_csv('encounters.csv', index=False); print(E.round(2).to_string())
+E.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'table11_recall_by_encounter.csv'), index=False); print(E.round(2).to_string())
 for c in C.FOCUS_IDS:
     e = E[E.species == C.NAMES[c]]
     print(C.NAMES[c], 'encounters improved', (e.delta > 0.02).sum(), 'worse', (e.delta < -0.02).sum(), 'of', len(e))

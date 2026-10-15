@@ -53,5 +53,5 @@ for c in list(C.FOCUS_IDS) + ['all3']:
             rows.append(dict(species=SP.get(c, 'Focus species (pooled)'), scope=scope, quantity=k,
                              baseline=b[0], copypaste=cp[0], delta=d0, lo=lo, hi=hi, p=p))
 T = pd.DataFrame(rows)
-T.to_csv('err_summary_all.csv', index=False)
+T.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'error_breakdown.csv'), index=False)
 print(T[(T.scope == 'all')].round(3).to_string())

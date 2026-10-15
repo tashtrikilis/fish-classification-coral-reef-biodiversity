@@ -1,22 +1,26 @@
 # Cross-validation results
 
-Outputs of `copy_paste_experiment/cv_evaluate.py` for every model configuration. All metrics come from the pooled
-out-of-fold test predictions (each frame scored by the model that never saw it), with 95% paired block-bootstrap CIs
+Outputs of `copy_paste_experiment/cv_evaluate.py`. All metrics come from the pooled out-of-fold test predictions:
+every frame is scored once, by the model whose test fold contains it. CIs are 95% paired block-bootstrap intervals
 (2,000 resamples of the 49 temporal blocks).
 
-| Folder | Configuration | Notes |
+| Folder | Configuration | AP scored with |
 |---|---|---|
-| `cv_results_round4/` | Detection M, seed 0 | exploratory |
-| `cv_results_round5/cv_results_seeds1/` | Detection M, seed 1 | |
-| `cv_results_round5/cv_results_seeds0-1/` | Detection M, seeds 0+1 averaged | **reported** |
-| `cv_results_round6/cv_results_<setup>_<box\|mask>_seeds0-1/` | Detection S/L, Segmentation S/M/L | **reported** (box AP for detection, mask AP for segmentation) |
-| `cv_results_round6/..._seeds0/`, `..._seeds1/` | the same, one seed at a time | |
+| `detect_s/`, `detect_m/`, `detect_l/` | Detection S / M / L | box IoU |
+| `segment_{s,m,l}_mask/` | Segmentation S / M / L | mask IoU (reported) |
+| `segment_{s,m,l}_box/` | Segmentation S / M / L | box IoU (report Table 2, box columns) |
 
-Each folder holds:
+Each configuration has three subfolders:
 
-- `cv_results.md`: summary tables (focus species, any-fish, macro mAP50, per species);
-- `per_class_pooled.csv`: AP50, AP50-95, P, R and F1 for every class;
-- `per_fold.csv`: the same per fold;
-- figures.
+- `seeds0-1/`: seeds 0 and 1 averaged (**the results reported**);
+- `seed0/`, `seed1/`: each seed alone (used for the per-run comparisons).
 
-Holm–Bonferroni adjusted p-values for the six configurations are given in the main README and the report.
+Each subfolder contains:
+
+- `cv_results.md`: focus species, macro mAP50, any-fish AP50 and every class, with baseline, augmented, change and 95% CI;
+- `per_class_pooled.csv`: AP50, AP50-95, precision, recall and F1 for every class and both conditions;
+- `per_fold.csv`: the same per test fold;
+- figures produced by the evaluator.
+
+The Holm-adjusted p-values and the other report tables are reproduced in
+[`../supplementary_analysis/`](../supplementary_analysis/).

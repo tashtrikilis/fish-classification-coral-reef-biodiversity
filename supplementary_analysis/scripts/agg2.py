@@ -11,7 +11,7 @@ for c in C.FOCUS_IDS:
         y = Q[(Q.pred_cls == c) & (Q.arm == a) & (Q.cat == 'wrong_species')].true_cls.value_counts()
         for k, v in x.head(4).items(): out.append(dict(species=N[c], arm=a, direction='focus fish labelled as', other=N[k], per_model=v / 12))
         for k, v in y.head(4).items(): out.append(dict(species=N[c], arm=a, direction='other fish labelled as focus', other=N[k], per_model=v / 12))
-pd.DataFrame(out).to_csv('confusions.csv', index=False)
+pd.DataFrame(out).to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'confusions.csv'), index=False)
 print(pd.DataFrame(out).round(2).to_string())
 # --- confidence
 rows = []

@@ -46,4 +46,4 @@ for cid in C.FOCUS_IDS:
         FR.append(dict(species=name[cid], cat=cat, n_b=len(gb), n_c=len(gc), conf_b=gb.conf.mean() if len(gb) else np.nan, conf_c=gc.conf.mean() if len(gc) else np.nan,
                        d=d[0], lo=lo, hi=hi, hi_b=(gb.conf>=0.5).mean() if len(gb) else np.nan, hi_c=(gc.conf>=0.5).mean() if len(gc) else np.nan))
 FRd=pd.DataFrame(FR); print(FRd.round(3).to_string(index=False))
-T.to_csv('conf_paired_tp.csv',index=False); FRd.to_csv('conf_fp.csv',index=False)
+T.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'table14_confidence_correct.csv'),index=False); FRd.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'confidence_false_positives.csv'),index=False)

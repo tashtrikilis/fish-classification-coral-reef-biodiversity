@@ -26,3 +26,14 @@ for scheme in ['primary','box']:
         print(f"{C.NAMES[c]:24s} P {b[0][0]:.3f}->{a[0][0]:.3f} dP {100*dP[0]:+.1f}pp [{100*ci(dP[1:])[0]:+.1f},{100*ci(dP[1:])[1]:+.1f}] | R {b[1][0]:.3f}->{a[1][0]:.3f} dR {100*dR[0]:+.1f}pp [{100*ci(dR[1:])[0]:+.1f},{100*ci(dR[1:])[1]:+.1f}] | F1 {b[2][0]:.3f}->{a[2][0]:.3f} | TP {b[3]:.0f}->{a[3]:.0f} FP {b[4]:.0f}->{a[4]:.0f} GT {b[5]:.0f}")
         mb=mean_runs(c,'baseline',scheme); ma=mean_runs(c,'copypaste',scheme)
         print(f"   mean-of-runs: P {mb[0]:.3f}->{ma[0]:.3f} R {mb[1]:.3f}->{ma[1]:.3f} F1 {mb[2]:.3f}->{ma[2]:.3f}")
+
+# Table 9 (report): primary scheme (box IoU for detection, mask IoU for segmentation)
+import os, pandas as pd
+rows = []
+for c in C.FOCUS_IDS:
+    b = pooled(c, 'baseline', 'primary'); a = pooled(c, 'copypaste', 'primary'); dP = a[0] - b[0]; dR = a[1] - b[1]
+    rows.append(dict(species=C.NAMES[c], P_base=b[0][0], P_aug=a[0][0], dP_pp=100 * dP[0], dP_lo=100 * ci(dP[1:])[0],
+                     dP_hi=100 * ci(dP[1:])[1], R_base=b[1][0], R_aug=a[1][0], dR_pp=100 * dR[0], dR_lo=100 * ci(dR[1:])[0],
+                     dR_hi=100 * ci(dR[1:])[1], F1_base=b[2][0], F1_aug=a[2][0], TP_base=b[3], TP_aug=a[3], FP_base=b[4],
+                     FP_aug=a[4], labelled=b[5]))
+pd.DataFrame(rows).to_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tables', 'table9_precision_recall_f1.csv'), index=False)

@@ -1,9 +1,8 @@
 #!/bin/bash
-# Round 6: the same cross-validated copy-paste experiment for five more model set-ups.
-#   detection:     yolo26s, yolo26l            (yolo26m detection = rounds 4-5, already done)
+# Step 3: the same cross-validated copy-paste experiment for the other five model configurations.
+#   detection:     yolo26s, yolo26l            (yolo26m detection = steps 1-2)
 #   segmentation:  yolo26s-seg, yolo26m-seg, yolo26l-seg
 # Each set-up: baseline vs copy-paste x 5 folds x seeds 0 and 1 = 20 training jobs  ->  100 in total.
-# Pre-registered analysis: cv_grid_plan.md (written before these runs).
 #
 #   prepare (data_cv2/: same folds and synthetic images as data_cv/, plus segmentation labels; verified identical)
 #     -> 100 training jobs (H100)
@@ -18,11 +17,11 @@ source ./config.sh
 PROJ="${GRID_WANDB_PROJECT:-egh490-cv-final}"
 
 for f in cv_prepare.py cv_evaluate.py cv_check_same_det.py train_experiment.py cv_donor_candidates.csv cv_donor_veto.txt; do
-    [ -f "$f" ] || { echo "$f is missing -- copy the round-6 files over first"; exit 1; }
+    [ -f "$f" ] || { echo "$f is missing -- it is part of this folder"; exit 1; }
 done
-[ -d data_cv ] || { echo "data_cv/ (round 4) is missing -- it is needed to check the new data matches"; exit 1; }
+[ -d data_cv ] || { echo "data_cv/ (from submit_cv.sh) is missing -- it is needed to check the new data matches"; exit 1; }
 if ls runs_cv/detect_s_*/test_predictions.json runs_cv/segment_*/test_predictions.json >/dev/null 2>&1; then
-    echo "runs_cv/ already has round-6 runs -- move them aside first for a fresh round"; exit 1
+    echo "runs_cv/ already has these runs -- move them aside first for a fresh run"; exit 1
 fi
 
 module load Miniconda3 >/dev/null 2>&1 || true
@@ -63,5 +62,5 @@ for S in $SETUPS; do
     fi
 done
 echo "$N training jobs queued, logging to W&B project '$PROJ'."
-echo "Primary results (see cv_grid_plan.md): runs_cv/cv_results_<setup>_<box|mask>_seeds0-1/cv_results.md"
+echo "Results: runs_cv/cv_results_<setup>_<box|mask>_seeds0-1/cv_results.md"
 echo "Watch with:  qstat -u ${USER:-$(whoami)}"

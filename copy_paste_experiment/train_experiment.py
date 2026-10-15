@@ -26,7 +26,7 @@ After training, the best checkpoint is evaluated on val AND the held-out TEST sp
     tables:       per_class_test, per_class_val (every class, every metric)
     images:       test confusion matrix + PR curves
 Locally, in <project>/<name>/:  per_class_val.csv, per_class_test.csv, focus_metrics.json
-(compare_results.py reads these, so the comparison works even if W&B was offline).
+(useful as a local record if W&B was offline).
 """
 import argparse
 import csv

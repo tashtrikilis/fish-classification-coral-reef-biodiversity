@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Round 4: 5-fold cross-validation of baseline vs copy-paste (detection).
+5-fold temporal block cross-validation of baseline vs copy-paste (detection and segmentation data).
 
-Why: rounds 1-3 used ONE train/val/test split, and each split held only 1-3 individual fish of a
-focus species (e.g. all 16 val Forcepsfish were one fish passing by). Per-species results then
-measure a couple of sightings, not the method. Cross-validation tests every sighting once.
+Why: consecutive frames show the same fish, and a single train/val/test split holds only a few
+individual fish of each focus species. Cross-validation tests every sighting once.
 
 What this builds
 ----------------
