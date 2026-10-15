@@ -24,14 +24,17 @@ Two arms per fold, identical except for the extra synthetic training images:
   baseline   real train frames only
   copypaste  real train frames + --synth-per-species synthetic images per focus species, each with
              1..--max-pastes pasted fish of that species:
-               donors     Forcepsfish: the hand-approved donors in experiment_donors.csv;
-                          other species: cv_donor_candidates.csv minus cv_donor_veto.txt.
+               donors     Forcepsfish: the visually checked donors in experiment_donors.csv;
+                          other species: cv_donor_candidates.csv minus the candidates excluded at
+                          the visual quality check (cv_donor_veto.txt). See README.md,
+                          "Donor and paste-frame selection".
                           A donor is used in fold k only if its frame is in fold k's train set
                           or outside the frame range entirely (never a val/test fish).
                size       target size drawn from that species' REAL train instances in fold k
                           (shorter box side); donors are only shrunk (INTER_AREA), never enlarged.
                context    a donor is pasted into a train frame of the SAME camera view as its own
-                          frame (reef view vs pole/open-water/turning, per approved_acceptor_frames.csv;
+                          frame (reef view vs pole/open-water/turning, from the camera-view labels in
+                          approved_acceptor_frames.csv;
                           frames <1000 count as pole view). Hazy donors go into hazy scenes, clear
                           into clear, so pastes look like the real fish in that view.
                transform  +/- --max-rotation degrees, horizontal flip 0.5, no overlap with real fish.
@@ -80,7 +83,8 @@ def parse_args():
     p.add_argument("--out", type=Path, default=HERE / "data_cv")
     p.add_argument("--species", default="Forcepsfish,Orangespine Unicornfish,Convict Tang")
     p.add_argument("--hand-approved-species", default="Forcepsfish",
-                   help="Species whose donors come from --approved-donors; the rest come from --candidates.")
+                   help="Species whose donors come from the --approved-donors list; the rest come from "
+                        "--candidates minus the exclusions in --veto.")
     p.add_argument("--min-frame", type=int, default=1000)
     p.add_argument("--max-frame", type=int, default=2461)
     p.add_argument("--block-size", type=int, default=30)
@@ -206,7 +210,7 @@ def main():
             cands = [(iou(box, poly_bbox_px(p, W_IMG, H_IMG)), p) for c, p in labels.get(fr, []) if c == cid]
             best = max(cands, key=lambda t: t[0]) if cands else (0, None)
             if best[0] >= 0.8:
-                donors.append({"species": r["species"], "cid": cid, "frame": fr, "poly": best[1], "source": "hand_approved"})
+                donors.append({"species": r["species"], "cid": cid, "frame": fr, "poly": best[1], "source": "donor_list"})
     veto = defaultdict(set)
     keep_only = {}
     if args.veto.exists():
@@ -234,7 +238,7 @@ def main():
                 donors.append({"species": s, "cid": c, "frame": fr, "poly": poly, "source": f"auto#{idx}"})
     for s in focus:
         n = sum(1 for d in donors if d["species"] == s)
-        print(f"  donors {s:26s} {n:3d}" + (f"  ({n_veto[s]} vetoed)" if n_veto[s] else ""))
+        print(f"  donors {s:26s} {n:3d}" + (f"  ({n_veto[s]} excluded at quality check)" if n_veto[s] else ""))
 
     allowed_view = {}
     with open(args.acceptor_csv) as fh:

@@ -30,7 +30,7 @@ What this does, in order
 
 4. Generates synthetic copy-paste training images (TRAIN ONLY), one pasted fish
    per image, --synth-per-species per focus species, for each copy-paste arm:
-     - donors: only the manually approved instances in experiment_donors.csv,
+     - donors: only the visually checked instances in experiment_donors.csv,
        and only if their frame is a TRAIN frame or lies outside the dataset's
        frame range entirely (so it is never evaluated on).
      - acceptors (targets): any train frame that is an allowed camera view per

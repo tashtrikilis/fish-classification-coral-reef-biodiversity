@@ -48,7 +48,7 @@ def crowded(g):
     return hit / len(g)
 
 
-# donors (final pool after the manual veto)
+# donors (final pool after the visual quality check)
 veto = {}
 for line in open(f'{a.experiment}/cv_donor_veto.txt'):
     if line.strip() and not line.startswith('#'):

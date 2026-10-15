@@ -4,7 +4,7 @@
 #
 #   cv_prepare (CPU)  ->  10 training jobs (2 arms x 5 folds, H100)  ->  cv_evaluate (CPU)
 #
-# Needs cv_donor_candidates.csv and cv_donor_veto.txt (your vetoes; an empty file = keep all).
+# Needs cv_donor_candidates.csv and cv_donor_veto.txt (candidates excluded at the visual quality check; an empty file = keep all).
 # Output: data_cv/, runs_cv/ and runs_cv/cv_results/. 
 # Run from this folder on the Aqua login node:  bash submit_cv.sh
 set -euo pipefail

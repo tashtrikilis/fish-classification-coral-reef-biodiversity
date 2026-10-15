@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Auto-select copy-paste donor candidates for species without a manual review, and draw a
-contact sheet so they can be spot-checked (vetoed) by eye.
+Automatically list copy-paste donor candidates (Orangespine Unicornfish and Convict Tang), and draw a
+contact sheet of them for a visual quality check.
 
 A candidate is a labelled instance of the species, in ANY labelled frame of the CVAT export, that is:
   - big enough:   shorter bbox side >= --min-side px (default 30)
@@ -11,11 +11,12 @@ A candidate is a labelled instance of the species, in ANY labelled frame of the 
 
 Writes
   cv_donor_candidates.csv            one row per candidate (species, idx, frame, bbox, size, fill, view)
-  qa_preview/cv_donors_<species>.jpg  numbered crops with the label outline; note the numbers to veto
+  qa_preview/cv_donors_<species>.jpg  numbered crops with the label outline, for the visual check
 
-Then list vetoes in cv_donor_veto.txt as "<species>,<idx>" lines (or "<species>,all-except,<idx>,<idx>...").
-cv_prepare.py combines: Forcepsfish = experiment_donors.csv (your hand-approved set),
-other species = candidates minus vetoes.
+Candidates that fail the visual check are listed in cv_donor_veto.txt as "<species>,<idx>,<idx>..." lines
+(or "<species>,all-except,<idx>,<idx>..."). cv_prepare.py combines: Forcepsfish = experiment_donors.csv
+(from an earlier visual review), other species = candidates minus those exclusions.
+The check was done once, before any cross-validation run, and applies to every fold and model.
 
 Usage (from copy_paste_experiment/):
     python3 cv_select_donors.py --images-dir ../full_dataset
