@@ -1,6 +1,6 @@
 # Cross-validation: baseline vs copy-paste (mask AP, pooled over 5 test folds, yolo26s-seg, mask AP; seed 0)
 
-Every labelled frame in 1462 frames is scored once, by the fold model that never trained on it. Brackets: 95% interval from a paired block bootstrap (2000 resamples of 49 30-frame blocks). p: two-sided bootstrap p-value for the difference. Recall is at confidence 0.25. Primary endpoint: 'Focus species (mean)' AP50.
+Every labelled frame in 1462 frames is scored once, by the fold model that never trained on it. Brackets: 95% interval from a paired block bootstrap (2000 resamples of 49 30-frame blocks). p: two-sided bootstrap p-value for the difference (not adjusted for multiple comparisons). Recall is at confidence 0.25.
 
 | | Labels | Metric | Baseline | Copy-paste | Difference [95% CI] | p |
 |---|---|---|---|---|---|---|
@@ -16,8 +16,6 @@ Every labelled frame in 1462 frames is scored once, by the fold model that never
 | Any fish (class-agnostic) | 4098 | R | 0.581 [0.536–0.626] | 0.586 [0.546–0.630] | +0.006 [-0.013 to +0.024] | 0.571 |
 | Macro mAP50, 20 classes with >= 20 labels |  | AP50 | 0.246 [0.217–0.304] | 0.263 [0.236–0.311] | +0.017 [-0.015 to +0.039] | 0.297 |
 | Macro mAP50, 20 classes with >= 20 labels |  | R | 0.226 [0.194–0.265] | 0.259 [0.228–0.295] | +0.033 [+0.009 to +0.058] | 0.006 |
-
-A difference counts as a finding only if its 95% interval excludes 0. The focus-species mean is the single pre-specified test; treat the per-species rows as supporting detail.
 
 ## All metrics, focus species
 

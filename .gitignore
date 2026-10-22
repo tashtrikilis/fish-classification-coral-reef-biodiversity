@@ -1,12 +1,7 @@
-# Source footage and generated datasets (too large / not ours to publish)
+# Frames and generated datasets
 full_dataset/
-dataset_*/
-dataset_*_v*/
-copy_paste_experiment/data/
-copy_paste_experiment/preview_data/
-copy_paste_review/blend_review*/
-copy_paste_review/poisson_*/
-copy_paste_review/final_recommended_*/
+copy_paste_experiment/data_cv*/
+copy_paste_experiment/analysis_bundle/
 *.cache
 
 # Model weights and training outputs
@@ -32,5 +27,5 @@ dataset/
 supplementary_analysis/scripts/analysis_bundle/
 *.pkl
 *.tgz
-r6.json
 media/fonts/
+supplementary_analysis/scripts/*.csv

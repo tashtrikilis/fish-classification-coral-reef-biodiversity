@@ -15,8 +15,6 @@ Every labelled frame in 1462 frames is scored once, by the fold model that never
 | Macro mAP50, 20 classes with >= 20 labels |  | AP50 | 0.298 [0.273–0.367] | 0.311 [0.283–0.366] | +0.013 [-0.026 to +0.036] | 0.576 |
 | Macro mAP50, 20 classes with >= 20 labels |  | R | 0.279 [0.242–0.344] | 0.278 [0.247–0.317] | -0.002 [-0.055 to +0.028] | 0.802 |
 
-A difference counts as a finding only if its 95% interval excludes 0. With several rows tested, treat a single p near 0.05 with caution.
-
 ## Per fold (AP50 / recall)
 
 | Fold | Species | Test labels | Baseline AP50 | Copy-paste AP50 | Baseline R | Copy-paste R |

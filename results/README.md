@@ -20,7 +20,10 @@ Each subfolder contains:
 - `cv_results.md`: focus species, macro mAP50, any-fish AP50 and every class, with baseline, augmented, change and 95% CI;
 - `per_class_pooled.csv`: AP50, AP50-95, precision, recall and F1 for every class and both conditions;
 - `per_fold.csv`: the same per test fold;
-- figures produced by the evaluator.
+- `fig_*.png`: the evaluator's figures (Detection M seed 0 only has `fig_ap50.png`).
+
+Class names here follow the original label export, so three differ from the dataset release: "Bullethead Unicornfish"
+(Bullethead Parrotfish), "Lognnose Butterflyfish" (Longnose Butterflyfish) and "Ornate Butterfly Fish".
 
 The Holm-adjusted p-values and the other report tables are reproduced in
 [`../supplementary_analysis/`](../supplementary_analysis/).

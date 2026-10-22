@@ -12,7 +12,7 @@ improves recognition of under-represented fish species.
 
 ## Contents
 
-- [Demo video](#demo-video)
+- [Demo videos](#demo-videos)
 - [Dataset](#dataset)
 - [Method](#method)
 - [Main results](#main-results)
@@ -20,12 +20,15 @@ improves recognition of under-represented fish species.
 - [Reproducing the results](#reproducing-the-results)
 - [Licence](#licence)
 
-## Demo video
+## Demo videos
 
-Baseline (left) vs augmented (right) detections on held-out test frames, YOLO26 Detection M:
-[Forcepsfish](media/demo_forcepsfish.mp4) · [Orangespine Unicornfish](media/demo_orangespine_unicornfish.mp4) ·
-[Convict Tang](media/demo_convict_tang.mp4). The clips are chosen examples where the baseline misses the fish, not a random sample.
-See [`media/`](media/) for details.
+![Baseline, augmented and ground truth on a held-out test frame](media/demo_forcepsfish_frame.jpg)
+
+Baseline, augmented and ground truth on held-out test frames (YOLO26 Detection M). Above, the baseline calls a
+Forcepsfish a Yellow Tang and the augmented model gets it right.
+Videos: [Forcepsfish](media/demo_forcepsfish.mp4) · [Orangespine Unicornfish](media/demo_orangespine_unicornfish.mp4) ·
+[Convict Tang](media/demo_convict_tang.mp4). The clips are chosen examples where the baseline misses the fish, not a
+random sample; see [`media/`](media/) for details.
 
 ## Dataset
 
@@ -42,6 +45,16 @@ See [`media/`](media/) for details.
   image lists for each fold. It also includes the 10 out-of-range donor frames needed to reproduce the augmentation.
 
 ## Method
+
+**Targeted copy-paste.** A focus-species fish is cut out of a training frame with its mask, randomly rotated, flipped
+and resized, and pasted into another training frame with the same camera view, with edge-only Poisson blending.
+
+![Copy-paste pipeline: donor frame, mask cut-out, receiver frame, augmented image](media/copy_paste_pipeline.png)
+
+**Cross-validation.** Neighbouring frames show the same fish, so the 1,462 frames are split into 30-frame blocks and
+the blocks into 5 folds. Frames within 15 frames of a test frame are left out of training.
+
+![Five-fold temporal block cross-validation](media/cv_folds.png)
 
 | | |
 |---|---|
@@ -79,7 +92,7 @@ Focus-species mean AP50, baseline vs augmented:
 ├── copy_paste_experiment/   experiment code: folds, donor selection, copy-paste, training, evaluation (QUT Aqua / PBS)
 ├── results/                 cross-validation results for every configuration (seeds 0, 1 and 0+1)
 ├── supplementary_analysis/  scripts and tables that reproduce every table in the report from the saved predictions
-├── media/                   demo videos (baseline vs augmented, one per focus species) and the script that makes them
+├── media/                   demo videos, README images and the script that makes the videos
 └── requirements.txt
 ```
 

@@ -8,7 +8,7 @@ Trains and evaluates the 120 runs reported in the thesis on QUT's Aqua HPC (PBS 
 | `config.sh` | Paths shared by all job scripts: `IMAGES_DIR` (frames), `VENV`, W&B project |
 | `cv_select_donors.py` | Lists donor candidates for Orangespine Unicornfish and Convict Tang (shorter side ≥30 px, ≥3 px from the frame edge, mask fill ≥0.45, no overlap with another fish) → `cv_donor_candidates.csv` |
 | `cv_donor_veto.txt` | The 7 candidates excluded at the visual quality check (see [below](#donor-and-paste-frame-selection)) |
-| `experiment_donors.csv` | The 23 Forcepsfish donors from the visual review. Its 13 Moorish Idol rows are from an earlier stage and are not read by the code |
+| `experiment_donors.csv` | The 23 Forcepsfish donors from the visual review |
 | `approved_acceptor_frames.csv` | Camera view of each frame (1 = reef view, 0 = pole / open-water view), used to paste donors only into frames of the same view |
 | `cv_prepare.py` | Builds the 5 temporal-block folds (train / val / test, 15-frame buffer) and, per fold, 150 synthetic copy-paste images per focus species from that fold's own donors |
 | `prepare_experiment.py` | Helper functions used by `cv_prepare.py`: label reading, random transforms, placement, edge-only Poisson blending |

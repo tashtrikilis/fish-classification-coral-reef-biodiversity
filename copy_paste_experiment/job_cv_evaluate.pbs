@@ -8,8 +8,7 @@
 
 # Pools the 5 test folds and compares baseline vs copy-paste with bootstrap confidence intervals.
 # EVAL_SETS: which seed sets to evaluate, sets separated by '+', seeds within a set by ':'
-#   default "0" (step 1). submit_cv_confirm.sh uses "1+0:1+0": seed 1 alone,
-#   seeds 0 and 1 averaged (reported), and seed 0 again (so all three land in the W&B project).
+#   default "0" (step 1). submit_cv_confirm.sh uses "1+0:1+0": seed 1, seeds 0+1 averaged, and seed 0.
 cd $PBS_O_WORKDIR
 _WB_OVERRIDE="${WANDB_PROJECT:-}"   # a W&B project passed with qsub -v wins over config.sh
 source ./config.sh

@@ -1,4 +1,4 @@
-# Demo videos
+# Demo videos and README images
 
 Baseline vs targeted copy-paste augmentation on held-out test footage, one video per focus species:
 
@@ -21,6 +21,11 @@ Baseline vs targeted copy-paste augmentation on held-out test footage, one video
 fish and the augmented model finds it, to show what the improvement looks like. Frames where the augmented model also
 misses or misclassifies the fish are kept within each encounter. The overall effect, including runs and frames where
 augmentation did not help, is in [`../results/`](../results/) and [`../supplementary_analysis/`](../supplementary_analysis/).
+
+## Images
+
+`copy_paste_pipeline.png`, `cv_folds.png` and `demo_forcepsfish_frame.jpg` (one frame of the Forcepsfish video) are the
+images in the main README.
 
 ## Re-making the videos
 

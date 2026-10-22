@@ -28,7 +28,7 @@ DEFAULT_MODELS = {"detect": "yolo26m.pt", "segment": "yolo26m-seg.pt"}
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--task", required=True, choices=["detect", "segment"])
-    p.add_argument("--arm", required=True, choices=["baseline", "copypaste", "copypaste_scaled"])
+    p.add_argument("--arm", required=True, choices=["baseline", "copypaste"])
     p.add_argument("--data-dir", type=Path, default=HERE / "data")
     p.add_argument("--model", default=None, help="Default: yolo26m.pt / yolo26m-seg.pt")
     p.add_argument("--epochs", type=int, default=150)
@@ -37,14 +37,11 @@ def parse_args():
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--patience", type=int, default=50)
     p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--cls-pw", type=float, default=0.0, dest="cls_pw",
-                   help="Inverse-class-frequency loss weighting (your v3 runs used 0.5). Default 0 = off, "
-                        "so copy-paste is the only thing that differs between arms.")
     p.add_argument("--project", type=Path, default=HERE / "runs")
     p.add_argument("--name", default=None, help="Default: <task>_<arm>, plus _i<imgsz> when --imgsz isn't 1280 and _s<seed> when --seed isn't 0")
     p.add_argument("--focus", default=None,
                    help="Comma-separated focus species. Default: focus_species from <data-dir>/prepare_summary.json, "
-                        "else Forcepsfish,Moorish Idol")
+                        "else the three focus species")
     p.add_argument("--wandb-project", default="egh490-copypaste-experiment")
     p.add_argument("--wandb-entity", default=None)
     p.add_argument("--no-wandb", action="store_true")
@@ -246,7 +243,7 @@ def main():
             if k.isdigit():
                 yaml_names[int(k)] = v.strip()
     names = yaml_names or names
-    focus_str = args.focus or ",".join(prep.get("focus_species", [])) or "Forcepsfish,Moorish Idol"
+    focus_str = args.focus or ",".join(prep.get("focus_species", [])) or "Forcepsfish,Orangespine Unicornfish,Convict Tang"
     focus = [s.strip() for s in focus_str.split(",") if s.strip()]
     focus_ids = {s: next(k for k, v in names.items() if v == s) for s in focus}
 
@@ -266,7 +263,7 @@ def main():
                            if args.resume and (run_dir / "wandb_id.txt").exists() else None),
                        resume="allow",
                        config={"task": args.task, "arm": args.arm, "model": str(args.model or DEFAULT_MODELS[args.task]),
-                               "epochs": args.epochs, "imgsz": args.imgsz, "seed": args.seed, "cls_pw": args.cls_pw,
+                               "epochs": args.epochs, "imgsz": args.imgsz, "seed": args.seed,
                                "focus_species": focus, "data_yaml": str(data_yaml), "prepare": prep})
             run_dir.mkdir(parents=True, exist_ok=True)
             (run_dir / "wandb_id.txt").write_text(wandb.run.id)
@@ -305,8 +302,6 @@ def main():
                         batch=batch, workers=args.workers, project=str(args.project), name=name,
                         exist_ok=True, patience=args.patience, seed=args.seed, deterministic=True,
                         copy_paste=0.0, plots=True, fraction=args.fraction)
-    if args.cls_pw:
-        train_kwargs["cls_pw"] = args.cls_pw
     if args.resume:
         model.train(resume=True)
     else:

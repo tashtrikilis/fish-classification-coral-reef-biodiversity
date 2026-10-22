@@ -19,7 +19,7 @@ neighbouring frames show the same fish. Training randomness (seed) isn't part of
 
 Writes to <runs-dir>/cv_results[_seeds...]/:
   cv_results.md, per_class_pooled.csv, per_fold.csv
-  fig_ap50.png (also saved as cv_results.png), fig_recall.png, fig_all_metrics.png, fig_per_fold.png
+  fig_ap50.png, fig_recall.png, fig_all_metrics.png, fig_per_fold.png
 
 Usage:
     python3 cv_evaluate.py                 # seed 0
@@ -327,17 +327,15 @@ def main():
     lines = [f"# Cross-validation: baseline vs copy-paste ({'mask' if args.iou_type == 'mask' else 'box'} AP, pooled over 5 test folds, {seed_txt})", "",
              f"Every labelled frame in {len(folds)} frames is scored once, by the fold model that never trained on it. "
              f"Brackets: 95% interval from a paired block bootstrap ({args.boot} resamples of {n_blocks} 30-frame blocks). "
-             f"p: two-sided bootstrap p-value for the difference. Recall is at confidence {args.conf}. "
-             f"Primary endpoint: '{FOCUS_MEAN}' AP50.", "",
+             f"p: two-sided bootstrap p-value for the difference (not adjusted for multiple comparisons). "
+             f"Recall is at confidence {args.conf}.", "",
              "| | Labels | Metric | Baseline | Copy-paste | Difference [95% CI] | p |", "|---|---|---|---|---|---|---|"]
     for r in res:
         lab = f"**{r['row']}**" if r["row"] == FOCUS_MEAN else r["row"]
         lines.append(f"| {lab} | {r['instances']} | {r['metric']} | {f3(r['baseline'])} [{f3(r['baseline_ci'][0])}–{f3(r['baseline_ci'][1])}] | "
                      f"{f3(r['copypaste'])} [{f3(r['copypaste_ci'][0])}–{f3(r['copypaste_ci'][1])}] | "
                      f"{r['delta']:+.3f} [{r['delta_ci'][0]:+.3f} to {r['delta_ci'][1]:+.3f}] | {f3(r['p'])} |")
-    lines += ["", "A difference counts as a finding only if its 95% interval excludes 0. The focus-species mean is the "
-              "single pre-specified test; treat the per-species rows as supporting detail.", "",
-              "## All metrics, focus species", "", "| Species | Metric | Baseline | Copy-paste | Change |", "|---|---|---|---|---|"]
+    lines += ["", "## All metrics, focus species", "", "| Species | Metric | Baseline | Copy-paste | Change |", "|---|---|---|---|---|"]
     for s, c in zip(focus, focus_ids):
         for met in ("AP50", "AP50-95", "P", "R", "F1"):
             b, cpm = full["baseline"].get(c), full["copypaste"].get(c)
@@ -449,9 +447,7 @@ def make_figures(out, res, full, focus, focus_ids, per_fold, seed_txt):
         paths.append(p)
         return p
 
-    ap = ci_figure("AP50", "AP50", "fig_ap50.png")
-    import shutil
-    shutil.copy(ap, out / "cv_results.png")
+    ci_figure("AP50", "AP50", "fig_ap50.png")
     ci_figure("R", "Recall at conf 0.25", "fig_recall.png")
 
     # all metrics for the focus species, one panel per species

@@ -6,8 +6,8 @@
 #PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
-# Rebuilds the cross-validation data into data_cv2/ with segmentation roots added, then checks that its detection
-# data is byte-identical to data_cv/ (used by the medium detection runs). Fails if not, so no training job starts.
+# Rebuilds the CV data into data_cv2/ with the segmentation roots added, then checks its detection data
+# matches data_cv/ (used for the Detection M runs). If it doesn't, the job fails and no training starts.
 cd $PBS_O_WORKDIR
 source ./config.sh
 module load Miniconda3

@@ -1,10 +1,10 @@
 # Settings shared by all the job scripts. Edit IMAGES_DIR before the first run.
 
-# Folder on Aqua holding frame_<N>.jpg. Must include frames 1000-2461 AND the
-# out-of-range Forcepsfish donor frames 163-167 and 939-941.
+# Folder with all the frame_<N>.jpg files: frames 1000-2461 plus the donor frames outside
+# that range (18, 22, 163-167, 939-941), i.e. images/ and donor_frames/images/ from the dataset zip.
 IMAGES_DIR="$HOME/aqua_yolo/full_dataset"
 
-# Python environment (same one your other YOLO jobs use)
+# Python virtual environment with requirements.txt installed
 VENV="$HOME/yolo-venv"
 
 # Weights & Biases project every run logs to

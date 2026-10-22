@@ -6,7 +6,7 @@
 #PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
-# Builds data_cv/: 5 cross-validation folds x (baseline, copypaste), with the synthetic images.
+# Builds data_cv/: the 5 CV folds for baseline and copy-paste, including the synthetic images.
 cd $PBS_O_WORKDIR
 source ./config.sh
 module load Miniconda3
