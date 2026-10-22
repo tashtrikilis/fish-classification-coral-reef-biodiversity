@@ -1,4 +1,4 @@
-"""Augmentation-vs-capacity comparisons, with segmentation scored by MASK IoU (matches main results)."""
+"""Augmented smaller model vs baseline bigger model (Table 8). Segmentation uses mask IoU, like the main results."""
 import sys, pickle, warnings, numpy as np, pandas as pd
 warnings.filterwarnings('ignore'); sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 import common as C

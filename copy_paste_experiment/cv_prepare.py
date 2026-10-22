@@ -1,54 +1,36 @@
 #!/usr/bin/env python3
 """
-5-fold temporal block cross-validation of baseline vs copy-paste (detection and segmentation data).
+Builds the 5-fold temporal block cross-validation data (baseline and copy-paste, det and seg).
 
-Why: consecutive frames show the same fish, and a single train/val/test split holds only a few
-individual fish of each focus species. Cross-validation tests every sighting once.
+Frames --min-frame..--max-frame (1000-2461, unlabelled frames count as background) are cut into
+30-frame blocks (~1 min each) and the blocks are dealt into 5 folds. The assignment is the most
+balanced of --fold-search random candidates, based on label counts (focus species and overall).
 
-What this builds
-----------------
-Frames --min-frame..--max-frame (default 1000-2461, the CVAT-labelled range; unlabelled frames in
-range are labelled background) are cut into --block-size (30-frame, ~1 min) blocks. Blocks are dealt
-into --folds groups; the assignment is chosen from --fold-search random candidates to balance the
-focus species and the overall instance counts across folds. It's chosen on LABEL COUNTS ONLY, never
-on results.
+For fold k:
+  test   the blocks in fold k
+  val    every second block of fold k+1, only used to pick the best epoch
+  train  everything else, minus frames within --buffer-frames (15) of a test frame
+Each frame ends up in exactly one test set.
 
-For fold k:  test = group k,  val = every other block of group k+1 (about half a group; used
-             only to pick the best epoch), train = everything else, minus a --buffer-frames band
-             (default 15) around every TEST frame, so the same fish seconds apart can't sit in
-             train and test. (Val has no buffer: a val/train neighbour can only nudge which epoch
-             is kept, never the test score.)
-Every frame is in exactly one test set, so pooling the 5 test sets covers the whole range once.
+The copypaste arm adds --synth-per-species synthetic images per focus species to train, each with
+1..--max-pastes fish:
+  - donors: Forcepsfish from experiment_donors.csv, the others from cv_donor_candidates.csv minus
+    cv_donor_veto.txt (see README). A donor is only used if its frame is in fold k's train set or
+    outside the frame range.
+  - size drawn from that species' train instances in fold k (shorter box side); donors are only shrunk
+  - pasted into a train frame with the same camera view as the donor's frame
+    (approved_acceptor_frames.csv; frames < 1000 count as pole view)
+  - rotation +/- --max-rotation, hflip 0.5, no overlap with labelled fish
+  - edge-only Poisson blend (seamlessClone on a 1-3 px ring, donor pixels inside)
 
-Two arms per fold, identical except for the extra synthetic training images:
-  baseline   real train frames only
-  copypaste  real train frames + --synth-per-species synthetic images per focus species, each with
-             1..--max-pastes pasted fish of that species:
-               donors     Forcepsfish: the visually checked donors in experiment_donors.csv;
-                          other species: cv_donor_candidates.csv minus the candidates excluded at
-                          the visual quality check (cv_donor_veto.txt). See README.md,
-                          "Donor and paste-frame selection".
-                          A donor is used in fold k only if its frame is in fold k's train set
-                          or outside the frame range entirely (never a val/test fish).
-               size       target size drawn from that species' REAL train instances in fold k
-                          (shorter box side); donors are only shrunk (INTER_AREA), never enlarged.
-               context    a donor is pasted into a train frame of the SAME camera view as its own
-                          frame (reef view vs pole/open-water/turning, from the camera-view labels in
-                          approved_acceptor_frames.csv;
-                          frames <1000 count as pole view). Hazy donors go into hazy scenes, clear
-                          into clear, so pastes look like the real fish in that view.
-               transform  +/- --max-rotation degrees, horizontal flip 0.5, no overlap with real fish.
-               blend      edge-only Poisson (seamlessClone in a 1-3 px ring, donor pixels inside).
+Output in --out (default data_cv/):
+  folds.csv, cv_summary.json
+  fold<k>/{det,seg}_{baseline,copypaste}/   YOLO dataset roots (+ yaml)
+  fold<k>/prepare_summary.json, fold<k>/synth_report.csv
+  qa_cv_synthetic_fold0.jpg                  some pasted fish from fold 0 with their label boxes
 
-Output (--out, default data_cv/):
-  folds.csv                       frame, block, fold (the test fold of every frame)
-  cv_summary.json                 fold assignment, counts per fold, donors, settings
-  fold<k>/det_{baseline,copypaste}/{images,labels}/{train,val,test}
-  fold<k>/det_{baseline,copypaste}.yaml, fold<k>/prepare_summary.json, fold<k>/synth_report.csv
-  qa_cv_synthetic_fold0.jpg       random pasted fish (fold 0), zoomed, with the written label box
-
-Usage (from copy_paste_experiment/):
-    python3 cv_prepare.py --images-dir ../full_dataset --folds-only     # check the folds, no images written
+Usage:
+    python3 cv_prepare.py --images-dir ../full_dataset --folds-only   # just check the folds
     python3 cv_prepare.py --images-dir ../full_dataset --force
 """
 import argparse
@@ -100,15 +82,15 @@ def parse_args():
     p.add_argument("--qa-samples", type=int, default=24)
     p.add_argument("--folds-only", action="store_true", help="Only choose + report the folds; write nothing.")
     p.add_argument("--force", action="store_true")
-    p.add_argument("--no-seg", action="store_true", help="Build detection roots only (the round-4/5 layout)")
+    p.add_argument("--no-seg", action="store_true", help="Build detection roots only")
     return p.parse_args()
 
 
-# --------------------------------------------------------------------------- folds
+# ---- folds
 
 def choose_folds(blocks, block_counts, focus_ids, other_ids, n_folds, n_search, seed):
-    """Deal blocks into n_folds groups of (near) equal size; keep the candidate whose per-fold
-    instance counts are most even for the focus species, the bigger other classes and overall."""
+    """Deal the blocks into n_folds roughly equal groups, n_search times, and keep the split with the
+    most even per-fold counts (focus species, larger classes and total)."""
     rng = random.Random(seed)
     tot = Counter()
     for b in blocks:
@@ -169,8 +151,8 @@ def main():
                                     args.fold_search, args.fold_seed)
     fold_of = {f: assign[block_of[f]] for f in frames}
 
-    # per fold: test = group k; val = every other block of group k+1 (about half a group; it only
-    # picks the best epoch); train = everything else minus a buffer band around the TEST frames.
+    # test = group k, val = every second block of group k+1 (epoch selection only),
+    # train = the rest minus the buffer around the test frames
     sets = {}
     for k in range(args.folds):
         test = [f for f in frames if fold_of[f] == k]
@@ -278,7 +260,7 @@ def main():
     qa_rows = []
     for k in range(args.folds):
         fd = args.out / f"fold{k}"
-        # one dataset root per task x arm (Ultralytics keeps a label cache per folder; never share them)
+        # separate root per task/arm so parallel jobs don't share Ultralytics' label cache
         for kind in KINDS:
             for arm in ("baseline", "copypaste"):
                 for sub in ("train", "val", "test"):
@@ -328,7 +310,7 @@ def main():
                     d = order[oi % len(order)]
                     oi += 1
                     if view(d["frame"]) != tv:
-                        continue  # keep every paste in this image from the same camera view
+                        continue  # all pastes in one image come from the same view
                     src = load_rgb(d["frame"])
                     x0, y0, bw, bh = (int(round(v)) for v in poly_bbox_px(d["poly"], W_IMG, H_IMG))
                     x1, y1 = min(x0 + bw + 1, W_IMG), min(y0 + bh + 1, H_IMG)
@@ -401,7 +383,7 @@ def main():
 
     (args.out / "cv_summary.json").write_text(json.dumps(summary, indent=2))
 
-    # ---- QA sheet: zoomed crops around pasted fish with the box read back from the label file
+    # ---- QA sheet: zoomed crops of pasted fish, box read back from the label file
     rng = random.Random(0)
     picks = rng.sample(qa_rows, min(args.qa_samples, len(qa_rows))) if qa_rows else []
     tiles = []

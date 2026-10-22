@@ -1,75 +1,12 @@
 #!/usr/bin/env python3
 """
-Build the baseline vs copy-paste experiment datasets (detection AND segmentation)
-for the targeted copy-paste study on Forcepsfish + Moorish Idol.
+Shared helpers for cv_prepare.py: reading the CVAT export, box/polygon conversion, random
+rotation/flip and the edge-only Poisson paste.
 
-What this does, in order
-------------------------
-1. Reads the CVAT "Ultralytics YOLO segmentation" export in labels_export/
-   (polygons, one label file per labelled frame) and keeps frames
-   --min-frame..--max-frame (default 1000-2461). A frame in that range with no
-   label file is a labelled BACKGROUND frame (no fish) and is kept as such.
+Running this file directly builds an older single train/val/test split version of the experiment.
+That was only used early on for testing and isn't part of the reported results.
 
-2. Splits frames into train / val / test using contiguous frame blocks
-   (--block-size, default 30 frames = ~1 min of footage at 30 frames/min), so
-   near-identical neighbouring frames don't land on both sides of the split.
-   Leakage guard for copy-paste specifically: any block containing a donor frame,
-   or within --guard-frames of one, is forced into TRAIN. So every held-out
-   (val/test) frame is more than --guard-frames away from every donor, and the
-   copy-paste arm can't get credit for recognising a test fish it was pasted
-   from. The focus species are then deliberately given val + test blocks, and
-   remaining val/test quota is filled from random blocks (seeded). Baseline and
-   copy-paste use the IDENTICAL split.
-
-3. Writes one YOLO dataset root per training run: data/{det,seg}_baseline,
-   data/{det,seg}_copypaste and data/{det,seg}_copypaste_scaled (bbox labels for det,
-   polygon labels for seg), each with images/{train,val,test}. They're separate so
-   parallel jobs never share Ultralytics' label cache files. Frames are symlinked to
-   --images-dir by default (--copy-images to copy instead), so the duplication costs
-   no disk. --no-size-matched drops the copypaste_scaled arm (round-1 layout).
-
-4. Generates synthetic copy-paste training images (TRAIN ONLY), one pasted fish
-   per image, --synth-per-species per focus species, for each copy-paste arm:
-     - donors: only the visually checked instances in experiment_donors.csv,
-       and only if their frame is a TRAIN frame or lies outside the dataset's
-       frame range entirely (so it is never evaluated on).
-     - acceptors (targets): any train frame that is an allowed camera view per
-       approved_acceptor_frames.csv (no pole / open-water view). Pass
-       --acceptor-same-species to also require the frame to already contain
-       that species.
-     - augmentation: random rotation in +/- --max-rotation degrees (continuous,
-       NOT 90-degree steps) and a horizontal flip with --hflip-prob. No
-       vertical flip.
-     - size:
-         copypaste         donors pasted at their real (large) size. Same seed and
-                           random-call order as round 1, so the images are identical.
-         copypaste_scaled  each paste's target size (shorter side of the mask, px) is
-                           drawn from the REAL TRAIN-split sizes of that species, so
-                           pasted fish follow the real size distribution, big and
-                           small. Donors are only ever shrunk (INTER_AREA), never
-                           enlarged; a donor smaller than the drawn size stays as is.
-                           Uses seed + 1000. The test split is not used to pick sizes.
-     - placement: never overlapping any real instance's bbox in the target.
-     - blend: edge-only Poisson -- cv2.seamlessClone on a thin ring around the
-       fish's outline, original donor pixels inside, so colours aren't washed out
-       (ring 3 px, thinner for tiny pastes). Falls back to the LAB-matched feathered
-       blend if seamlessClone errors.
-   The synthetic image keeps all of the target frame's real labels, plus one
-   new label for the pasted fish (polygon for seg, bbox for det).
-   Image files are written once per arm to data/synth_images/ (copypaste) and
-   data/synth_images_scaled/ (copypaste_scaled) and linked into the train folders.
-
-5. Writes the data yamls (one per root) with absolute paths, plus:
-     data/split.csv                     frame -> split (+ block id)
-     data/synth_report.csv              every paste: donor, target, angle, flip, x, y
-     data/synth_report_scaled.csv       same for the size-matched arm, plus scale
-     data/prepare_summary.json          counts used by train_experiment.py for W&B
-                                        config, and the real-vs-pasted size check
-     data/qa_synthetic_samples*.jpg     random synthetic samples per arm, zoomed, with
-                                        the pasted fish's LABEL polygon drawn from the
-                                        written label file (checks alignment)
-
-Usage (from copy_paste_experiment/):
+Usage:
     python3 prepare_experiment.py --images-dir /path/to/full_dataset
 """
 import argparse
@@ -116,14 +53,14 @@ def parse_args():
     p.add_argument("--copy-images", action="store_true", help="Copy frames instead of symlinking them.")
     p.add_argument("--qa-samples", type=int, default=24)
     p.add_argument("--no-size-matched", action="store_true",
-                   help="Skip the size-matched copy-paste arm (copypaste_scaled) and build only round 1's arms.")
+                   help="Skip the size-matched copy-paste arm (copypaste_scaled).")
     p.add_argument("--force", action="store_true", help="Delete an existing --out folder first.")
     p.add_argument("--split-only", action="store_true",
                    help="Only compute + report the split (no images needed). For checking.")
     return p.parse_args()
 
 
-# --------------------------------------------------------------------------- labels
+# ---- labels
 
 def read_names(yaml_path):
     names = {}
@@ -140,7 +77,7 @@ FRAME_RE = re.compile(r"mp4-(\d+)_jpg")
 
 
 def read_export_labels(labels_dir):
-    """frame -> list of (class_id, Nx2 normalised polygon array). Export file names look like
+    """frame -> list of (class_id, Nx2 normalised polygon). Export files are named like
     nelha-trimmed_mp4-<frame>_jpg.rf.<hash>.txt"""
     out = {}
     for f in labels_dir.glob("*.txt"):
@@ -186,7 +123,7 @@ def det_line(cls, poly_norm):
     return f"{cls} {(x0 + x1) / 2:.6f} {(y0 + y1) / 2:.6f} {x1 - x0:.6f} {y1 - y0:.6f}"
 
 
-# --------------------------------------------------------------------------- split
+# ---- split
 
 def make_split(frames, frame_classes, focus_ids, donor_frames, args):
     """Block split with a donor guard band. Returns frame -> 'train'|'val'|'test', block_of."""
@@ -244,10 +181,7 @@ def make_split(frames, frame_classes, focus_ids, donor_frames, args):
     return split, block_of, protected
 
 
-# --------------------------------------------------------------------------- pasting
-# Blending + augmentation are the same functions used for the visual review
-# (blend_review_generate.py / blend_review_large_donors.py), copied here so this
-# folder is self-contained on the HPC. Images are RGB numpy arrays.
+# ---- augmentation and blending (images are RGB numpy arrays)
 
 def color_transfer_lab(patch, mask, target_region):
     patch_lab = cv2.cvtColor(patch, cv2.COLOR_RGB2LAB).astype(np.float32)
@@ -290,11 +224,9 @@ def paste_poisson(target, patch, mask, x, y):
 
 
 def paste_poisson_edge(target, patch, mask, x, y, ring_px=3.0):
-    """Poisson only at the boundary: full cv2.seamlessClone result in a thin ring at the mask
-    edge (seamless join), fading to the donor's ORIGINAL pixels inside. Plain Poisson
-    re-derives the whole fish's colour from the surrounding background, which turned bright
-    yellow Forcepsfish grey-blue on open-water targets and erased thin fins/filaments that the
-    label still covers. Returns (image, used_fallback)."""
+    """Edge-only Poisson: the seamlessClone result in a thin ring around the mask edge, original donor
+    pixels inside. Full Poisson recolours the whole fish from the background (yellow Forcepsfish came
+    out grey-blue on open-water frames) and loses thin fins. Returns (image, used_fallback)."""
     pois, fb = paste_poisson(target, patch, mask, x, y)
     if fb:
         return pois, fb
@@ -356,7 +288,7 @@ def mask_to_polygon_norm(mask, x, y, w_img, h_img):
     return c
 
 
-# --------------------------------------------------------------------------- main
+# ---- main
 
 def link_or_copy(src, dst, copy):
     if dst.exists() or dst.is_symlink():
@@ -456,9 +388,8 @@ def main():
         if not args.force:
             sys.exit(f"{args.out} already exists -- pass --force to rebuild it")
         shutil.rmtree(args.out)
-    # One dataset root per run (det/seg x baseline/copypaste). Ultralytics keeps a labels/*.cache
-    # file per label folder and deletes/rewrites it when the image list changes, so two jobs running
-    # in parallel must never share a label folder. Image files are links, so this costs no disk.
+    # one root per run: Ultralytics rewrites labels/*.cache when the image list changes, so parallel
+    # jobs can't share a label folder. Images are symlinks so this doesn't take extra disk.
     ARMS = ["baseline", "copypaste"] + ([] if args.no_size_matched else ["copypaste_scaled"])
     ROOTS = [(kind, arm) for kind in ("det", "seg") for arm in ARMS]
     for kind, arm in ROOTS:
@@ -491,17 +422,16 @@ def main():
             img_cache[f] = cv2.cvtColor(cv2.imread(str(args.images_dir / f"frame_{f}.jpg")), cv2.COLOR_BGR2RGB)
         return img_cache[f]
 
-    # Real-fish size distribution per focus species: shorter side (px) of the axis-aligned box of
-    # every real instance in the TRAIN split. The size-matched arm draws each paste's size from this.
+    # shorter box side (px) of every real train instance per focus species;
+    # the size-matched arm samples paste sizes from this
     train_sizes = {s: [min(poly_bbox_px(p, W_IMG, H_IMG)[2:]) for f in frames if split[f] == "train"
                        for c, p in labels.get(f, []) if c == cid]
                    for s, cid in zip(focus, focus_ids)}
 
     def generate_arm(arm, rng, img_dir, size_matched):
         """Paste --synth-per-species fish per focus species into acceptor frames.
-        size_matched=False: donors pasted at their own size (round 1 'copypaste' arm, unchanged).
-        size_matched=True : after rotation/flip, each donor is shrunk (never enlarged) so the shorter
-                            side of its box equals a size drawn from that species' real train sizes."""
+        size_matched=False: donors at their own size
+        size_matched=True:  donors shrunk (never enlarged) to a size drawn from the species' train sizes"""
         img_dir.mkdir(parents=True, exist_ok=True)
         report, n_ok, n_fb = [], Counter(), Counter()
         for s, cid in zip(focus, focus_ids):
@@ -560,7 +490,7 @@ def main():
                     stem = f"{tag}_{s.replace(' ', '_')}_{k:04d}_t{tf}_d{d['frame']}"
                     img_path = img_dir / f"{stem}.jpg"
                     cv2.imwrite(str(img_path), cv2.cvtColor(out, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
-                    for kind in ("det", "seg"):  # synthetic images go ONLY into this arm's train folders
+                    for kind in ("det", "seg"):  # synthetic images only go in this arm's train folders
                         link_or_copy(img_path, args.out / f"{kind}_{arm}" / "images" / "train" / f"{stem}.jpg",
                                      args.copy_images)
                     real_rows = labels.get(tf, [])
@@ -582,7 +512,7 @@ def main():
             print(f"  [{arm}] {s}: wrote {n_ok[s]} synthetic images ({n_fb[s]} used the matched-blend fallback)")
         return report, n_ok, n_fb
 
-    # Round 1 arm first, with exactly the same random stream as before, so its images are unchanged.
+    # unscaled arm first so its random stream (and images) match the earlier builds
     arms = {"copypaste": generate_arm("copypaste", random.Random(args.seed), args.out / "synth_images", False)}
     if not args.no_size_matched:
         arms["copypaste_scaled"] = generate_arm("copypaste_scaled", random.Random(args.seed + 1000),
@@ -596,7 +526,7 @@ def main():
                 wr.writeheader()
                 wr.writerows(report)
 
-    # ---- size check: do pasted fish match the real fish?
+    # ---- size check: pasted vs real fish sizes
     def pct(v):
         v = np.asarray(v, float)
         return {"n": int(len(v)), "p10": round(float(np.percentile(v, 10)), 1), "median": round(float(np.median(v)), 1),
@@ -644,7 +574,7 @@ def main():
     }
     (args.out / "prepare_summary.json").write_text(json.dumps(summary, indent=2))
 
-    # ---- QA sheets: draw the pasted fish's polygon FROM THE WRITTEN LABEL FILE
+    # ---- QA sheets: draw the pasted fish's polygon from the written label file
     for arm, (report, _, _) in arms.items():
         if not report or args.qa_samples <= 0:
             continue

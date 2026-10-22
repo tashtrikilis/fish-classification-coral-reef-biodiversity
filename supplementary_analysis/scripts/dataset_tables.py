@@ -1,11 +1,11 @@
-"""Dataset-description tables of the report, computed from the labels and the donor lists.
+"""Dataset tables in the report, from the labels and donor lists.
 
-  Table 1  : instances, encounters and donors of the three focus species
-  Table 12 : size of the copy-paste donors vs the labelled fish (shorter side of the box, px)
-  Table 13 : instances, encounters, median size and crowding for the 20 classes with >= 20 instances
-             (AP50, P and R in Table 13 come from results/detect_m/seeds0-1/per_class_pooled.csv)
+  Table 1   instances, encounters and donors of the focus species
+  Table 12  donor sizes vs labelled fish (shorter box side, px)
+  Table 13  instances, encounters, median size and crowding for the 20 classes with >= 20 instances
+            (AP50, P and R for Table 13 come from results/detect_m/seeds0-1/per_class_pooled.csv)
 
-Usage (from this folder, with the dataset zip extracted to ../../dataset/):
+Usage (dataset zip extracted to ../../dataset/):
   python dataset_tables.py --dataset ../../dataset/kona_reef_fish_dataset --experiment ../../copy_paste_experiment
 """
 import argparse, csv, os, re

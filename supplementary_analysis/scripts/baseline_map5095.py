@@ -1,4 +1,4 @@
-"""Baseline macro mAP50-95 (20 classes with >= 20 instances) and any-fish AP50-95 (report Table 2), point estimates."""
+"""Baseline macro mAP50-95 (20 classes with >= 20 instances) and any-fish AP50-95 for Table 2."""
 import sys, pickle, numpy as np; sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 import engine as G, common as C
 B = pickle.load(open('boot.pkl','rb')); REL = B['reliable']

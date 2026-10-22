@@ -1,15 +1,12 @@
-"""Side-by-side demo videos: baseline vs copy-paste augmented, one video per focus species.
+"""Makes the demo videos in this folder: baseline | augmented | ground truth, one per focus species.
 
-Every frame shown is a TEST frame: it is predicted by the cross-validation fold model whose test set contains it,
-so neither model trained on it (and no donor was taken from it or from the 15-frame buffer around it).
-Model: YOLO26 Detection M, seed 0; predicted boxes with confidence >= 0.25.
-Layout: baseline | augmented | ground truth (the manual labels), side by side.
-Drawn: every prediction / label. The video's species is orange; all other species are white (thinner boxes, smaller labels).
+All frames are test frames, predicted by the fold model that has that frame in its test set.
+Detection M, seed 0, boxes with conf >= 0.25. Focus species in orange, everything else in white.
 
-The clips are illustrative: they were chosen as encounters where the baseline misses the fish and the augmented
-model finds it. They are not a random sample; the overall results are in ../results and ../supplementary_analysis.
+The clips were picked from encounters where the baseline misses the fish and the augmented model
+gets it, so they're examples rather than a random sample (see ../results for the actual numbers).
 
-Usage (needs the dataset zip and analysis_bundle_public.tgz from the Releases page):
+Usage (needs the dataset zip and analysis_bundle_public.tgz from Releases):
   python make_demo_videos.py --images ../dataset/kona_reef_fish_dataset/images \
       --bundle ../supplementary_analysis/scripts/analysis_bundle --fonts fonts
 """
@@ -27,7 +24,7 @@ ap.add_argument('--seconds-per-frame', type=float, default=1.5)
 a = ap.parse_args()
 
 SETUP, SEED, TAU, MODEL = 'detect_m', 0, 0.25, 'YOLO26 Detection M'
-CLIPS = {  # encounters (first frame, last frame); only frames where the species is labelled are shown
+CLIPS = {  # (first, last) frame of each clip; frames without the species are skipped
     'Forcepsfish': [(1603, 1607), (2095, 2100), (2159, 2161)],
     'Orangespine Unicornfish': [(1011, 1011), (1025, 1027), (1259, 1259), (1805, 1805), (2166, 2169), (2191, 2192)],
     'Convict Tang': [(2188, 2190), (2425, 2427), (2456, 2456)],

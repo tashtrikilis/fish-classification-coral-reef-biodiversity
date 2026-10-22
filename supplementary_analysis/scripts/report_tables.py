@@ -1,11 +1,9 @@
-"""Main-text results of the report (Tables 3-6 and the in-text comparisons), from boot.pkl.
+"""Tables 3-6 and the in-text numbers in the report, from boot.pkl (run run_boot.py first).
 
-Run run_boot.py first. Prints each table and writes CSVs to ../tables/.
-- AP50 is COCO 101-point AP at IoU 0.5; box IoU for detection, mask IoU for segmentation
-  (except the baseline segmentation-vs-detection comparison, which uses box AP for both).
-- Predictions pooled over the 5 test folds; seeds averaged inside each bootstrap resample.
-- 95% CI = 2.5th-97.5th percentile of 2,000 paired block-bootstrap resamples (49 temporal blocks).
-- Two-sided p = 2 * min(share of resampled differences <= 0, share >= 0); Holm-Bonferroni within each family.
+AP50 uses box IoU for detection and mask IoU for segmentation (box for both in the baseline seg vs det
+comparison). Predictions are pooled over the 5 test folds and seeds are averaged inside each resample.
+CIs are the 2.5-97.5 percentiles of 2000 paired block-bootstrap resamples (49 blocks);
+p = 2 * min(P(diff <= 0), P(diff >= 0)), Holm-adjusted within each table.
 """
 import os, sys, pickle, warnings
 import numpy as np, pandas as pd
@@ -47,7 +45,7 @@ def holm(ps):
     return adj
 
 
-# ---------------------------------------------------------------- Table 3: baseline AP50, focus species
+# ---- Table 3: baseline AP50, focus species
 rows = []
 for s in C.SETUPS:
     r = {'model': LAB[s]}
@@ -57,7 +55,7 @@ for s in C.SETUPS:
 T3 = pd.DataFrame(rows); T3.to_csv(os.path.join(OUT, 'table3_baseline_focus_ap50.csv'), index=False)
 print('\nTable 3  Baseline AP50, focus species\n', T3.round(3).to_string(index=False))
 
-# ---------------------------------------------------------------- Table 4: focus-species mean, augmented - baseline
+# ---- Table 4: focus-species mean, augmented - baseline
 rows = []
 for s in C.SETUPS:
     d = mean_ap(s, 'copypaste', C.FOCUS_IDS) - mean_ap(s, 'baseline', C.FOCUS_IDS)
@@ -70,7 +68,7 @@ T4.to_csv(os.path.join(OUT, 'table4_focus_mean_effect.csv'), index=False)
 print('\nTable 4  Focus-species mean AP50 (Holm across 6; p = 0 means no resample <= 0, i.e. p < 1/2000 before adjustment)\n',
       T4.round(3).to_string(index=False))
 
-# ---------------------------------------------------------------- Table 5: per species, averaged over the 6 configurations
+# ---- Table 5: per species, mean of the 6 configurations
 rows = []
 for c in C.FOCUS_IDS:
     b = np.mean([ap(s, 'baseline', c) for s in C.SETUPS], 0); a = np.mean([ap(s, 'copypaste', c) for s in C.SETUPS], 0)
@@ -82,7 +80,7 @@ T5 = pd.DataFrame(rows); T5['p_holm'] = holm(T5.p_raw.values)
 T5.to_csv(os.path.join(OUT, 'table5_species_effect.csv'), index=False)
 print('\nTable 5  Per species, mean of 6 configurations (Holm across 3)\n', T5.round(3).to_string(index=False))
 
-# ---------------------------------------------------------------- Table 6: macro, non-target and any-fish changes (unadjusted)
+# ---- Table 6: macro, non-target and any-fish changes (unadjusted)
 rows = []
 for s in C.SETUPS:
     r = {'model': LAB[s]}
@@ -94,7 +92,7 @@ for s in C.SETUPS:
 T6 = pd.DataFrame(rows); T6.to_csv(os.path.join(OUT, 'table6_nontarget_anyfish.csv'), index=False)
 print('\nTable 6  Changes (augmented - baseline), unadjusted 95% CI\n', T6.round(3).to_string(index=False))
 
-# ---------------------------------------------------------------- in text: baseline segmentation vs detection (box macro mAP50)
+# ---- in text: baseline seg vs det (box macro mAP50)
 rows = []
 for size in 'sml':
     q = summ(mean_ap(f'segment_{size}', 'baseline', REL, iou='box') - mean_ap(f'detect_{size}', 'baseline', REL, iou='box'))
@@ -102,7 +100,7 @@ for size in 'sml':
 TS = pd.DataFrame(rows); TS.to_csv(os.path.join(OUT, 'baseline_seg_vs_det_box.csv'), index=False)
 print('\nBaseline segmentation - detection, box macro mAP50 (unadjusted)\n', TS.round(3).to_string(index=False))
 
-# ---------------------------------------------------------------- in text: focus-mean gain in each configuration-seed run
+# ---- in text: focus-mean gain for each configuration and seed
 rows = []
 for s in C.SETUPS:
     for sd in C.SEEDS:

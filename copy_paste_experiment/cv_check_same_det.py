@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Check that a rebuilt cross-validation folder (e.g. data_cv2, with segmentation roots added) has exactly the same
-detection data as the original (data_cv): fold assignment, detection labels, image lists and synthetic images.
-Exits with an error if anything differs, so the training jobs that depend on it never start on different data.
+"""Checks that a rebuilt CV folder (e.g. data_cv2, with the seg roots added) has the same detection data
+as data_cv: folds, det labels, image lists and synthetic images. Exits with an error if anything differs.
 
-Usage:  python3 cv_check_same_det.py data_cv data_cv2
+Usage: python3 cv_check_same_det.py data_cv data_cv2
 """
 import hashlib
 import sys

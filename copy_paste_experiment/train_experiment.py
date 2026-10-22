@@ -1,32 +1,18 @@
 #!/usr/bin/env python3
 """
-Train one arm of the baseline vs copy-paste experiment and log it to Weights & Biases,
-with per-class metrics for the focus species (Forcepsfish, Moorish Idol by default).
+Trains one run (task, arm, seed) and logs it to W&B, with per-class metrics for the focus species.
 
-    python3 train_experiment.py --task detect  --arm baseline
-    python3 train_experiment.py --task detect  --arm copypaste
-    python3 train_experiment.py --task segment --arm baseline
-    python3 train_experiment.py --task segment --arm copypaste
-    python3 train_experiment.py --task segment --arm copypaste_scaled --seed 1   # -> run name segment_copypaste_scaled_s1
+    python3 train_experiment.py --task detect --arm baseline
+    python3 train_experiment.py --task segment --arm copypaste --seed 1
 
-Everything except the training images is identical between the two arms: same split,
-same model, same hyperparameters, same seed. Ultralytics' own built-in copy_paste
-augmentation is forced OFF in both arms so the only copy-paste is ours.
+The arms only differ in their training images. Ultralytics' built-in copy_paste is 0 for both.
 
-What ends up in W&B (project --wandb-project, one run per task x arm, grouped by task)
----------------------------------------------------------------------------------
-Every epoch (validation set):
-    focus/<Species>/box_P, box_R, box_F1, box_mAP50, box_mAP50-95
-    focus/<Species>/mask_P, ... (segment runs only)
-    plus Ultralytics' usual overall curves (losses, metrics/mAP50(B), ...)
-After training, the best checkpoint is evaluated on val AND the held-out TEST split:
-    run summary:  test/<Species>/box_mAP50 ... (sortable/comparable in the W&B runs table)
-                  test/all/box_mAP50, test/others_mean/box_mAP50 (all non-focus classes,
-                  to check copy-paste didn't hurt them)
-    tables:       per_class_test, per_class_val (every class, every metric)
-    images:       test confusion matrix + PR curves
-Locally, in <project>/<name>/:  per_class_val.csv, per_class_test.csv, focus_metrics.json
-(useful as a local record if W&B was offline).
+Logged to W&B (one run per task/arm):
+  - every epoch on val: focus/<species>/box_P, box_R, box_F1, box_mAP50, box_mAP50-95 (+ mask_* for seg)
+  - best checkpoint on val and test: test/<species>/..., test/all/..., test/others_mean/...
+  - per_class_val / per_class_test tables, confusion matrix, PR curves
+Also saved in <project>/<name>/: per_class_val.csv, per_class_test.csv, focus_metrics.json.
+--save-preds also writes test_predictions.json, which cv_evaluate.py reads.
 """
 import argparse
 import csv
@@ -72,7 +58,7 @@ def parse_args():
     return p.parse_args()
 
 
-# --------------------------------------------------------------------------- metrics helpers
+# ---- metrics helpers
 
 def _per_class(metric_obj, class_id):
     """(P, R, F1, mAP50, mAP50-95) for one class from an Ultralytics Metric (.box / .seg),
@@ -155,9 +141,9 @@ def write_summary_csv(metrics, path):
 
 
 def _mask_ious(pred_polys, pred_boxes, gt_polys, w, h):
-    """Mask IoU of every prediction against every ground-truth instance of the image (any class).
-    Polygons in pixels. Each pair is rasterised only inside the union of its two bounding regions; pairs
-    whose regions don't overlap get 0. Returns a list (one per prediction) of lists (one per GT)."""
+    """Mask IoU of each prediction vs each GT instance in the image (any class), polygons in pixels.
+    Each pair is only rasterised inside the union of their boxes; pairs that don't overlap get 0.
+    Returns one list per prediction (one value per GT)."""
     import cv2
     import numpy as np
     gts = []
@@ -191,10 +177,9 @@ def _mask_ious(pred_polys, pred_boxes, gt_polys, w, h):
 
 
 def save_test_predictions(model, data_yaml, imgsz, out_path, task="detect"):
-    """Raw test-split predictions, one entry per image: [[class, conf, x1, y1, x2, y2], ...] in pixels.
-    conf >= 0.001 and NMS IoU 0.7, the same settings Ultralytics' own validation uses.
-    For segmentation each row gets a 7th element: the mask IoU of that prediction with every ground-truth
-    instance of the image, in the order of the image's label file (so cv_evaluate.py can pool mask AP)."""
+    """Raw test predictions per image: [[cls, conf, x1, y1, x2, y2], ...] in pixels, conf >= 0.001 and
+    NMS IoU 0.7 (same as Ultralytics val). For seg each row also gets the mask IoU against every GT
+    instance in the image, in label-file order, so cv_evaluate.py can compute mask AP."""
     import numpy as np
     root, test = None, None
     for line in data_yaml.read_text().splitlines():
@@ -233,7 +218,7 @@ def save_test_predictions(model, data_yaml, imgsz, out_path, task="detect"):
     print(f"wrote {out_path} ({len(preds)} test images)")
 
 
-# --------------------------------------------------------------------------- main
+# ---- main
 
 def main():
     args = parse_args()
@@ -245,7 +230,7 @@ def main():
         raise FileNotFoundError(f"{data_yaml} not found -- run prepare_experiment.py first")
     name = args.name or (f"{args.task}_{args.arm}" + (f"_i{args.imgsz}" if args.imgsz != 1280 else "")
                          + (f"_s{args.seed}" if args.seed else ""))
-    args.project = args.project.resolve()  # Ultralytics nests RELATIVE project paths under runs/<task>/
+    args.project = args.project.resolve()  # Ultralytics puts relative project paths under runs/<task>/
     run_dir = args.project / name
     summary_path = args.data_dir / "prepare_summary.json"
     prep = json.loads(summary_path.read_text()) if summary_path.exists() else {}
@@ -265,8 +250,8 @@ def main():
     focus = [s.strip() for s in focus_str.split(",") if s.strip()]
     focus_ids = {s: next(k for k, v in names.items() if v == s) for s in focus}
 
-    # ---- W&B: we start the run ourselves so it has a proper name/group/config; Ultralytics'
-    # built-in W&B callback (if enabled in your settings) reuses this run instead of making its own.
+    # ---- W&B: start the run here so it gets our name/group/config. Ultralytics' W&B callback
+    # (if it's enabled) logs into this run instead of making a new one.
     wb = None
     if not args.no_wandb:
         try:

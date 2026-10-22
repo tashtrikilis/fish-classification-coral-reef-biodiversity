@@ -1,41 +1,30 @@
 #!/usr/bin/env python3
 """
-Pool the 5 cross-validation test folds and compare baseline vs copy-paste, with confidence intervals.
+Pools the 5 CV test folds and compares baseline vs copy-paste, with bootstrap CIs.
 
-Each frame in data_cv/ is in exactly one fold's TEST set, so pooling the per-fold test predictions
-(runs_cv/detect_<arm>_f<k>/test_predictions.json, written by train_experiment.py --save-preds)
-scores every labelled fish once, by the one model that never trained on it.
+Every frame is in exactly one fold's test set, so pooling the saved test predictions
+(<run>/test_predictions.json from train_experiment.py --save-preds) scores each labelled fish
+once, with a model that didn't train on it.
 
-Metrics (computed here, COCO-style, from the raw predictions):
-  AP50, AP50-95          101-point interpolated average precision per class
-  P, R, F1 @ conf 0.25   at Ultralytics' default prediction threshold
-  any fish AP50          class-agnostic: is there a fish here at all? (cross-class NMS 0.6 first)
-  macro mAP50            mean AP50 over the "reliable" classes (>= --min-instances pooled test labels)
+Metrics (COCO-style, computed from the raw predictions):
+  AP50, AP50-95    101-point interpolated AP per class
+  P, R, F1         at conf 0.25 (Ultralytics default)
+  any fish AP50    class-agnostic, after cross-class NMS (0.6)
+  macro mAP50      mean AP50 over classes with >= --min-instances test labels
 
-Uncertainty: a paired BLOCK bootstrap. The 30-frame blocks (the unit the folds were built from) are
-resampled with replacement, the same resample for both arms, --boot times; each metric and the
-copy-paste minus baseline difference is recomputed on every resample. Reported: the 95% percentile
-interval and a two-sided bootstrap p-value for the difference. Blocks, not frames, are resampled
-because neighbouring frames show the same fish. Training randomness (seed) is NOT in this interval;
-run a second seed per fold if you need it.
-
-Primary endpoint (fixed before the seed-1 confirmation run): "Focus species (mean)" = the mean over the
-focus species of AP50, and its copy-paste minus baseline difference with 95% CI.
+CIs come from a paired block bootstrap: the 30-frame blocks are resampled with replacement (same
+resample for both arms, --boot times) and every metric and difference is recomputed. Reports the
+95% percentile interval and a two-sided bootstrap p-value. Blocks rather than frames because
+neighbouring frames show the same fish. Training randomness (seed) isn't part of the interval.
 
 Writes to <runs-dir>/cv_results[_seeds...]/:
-  cv_results.md          headline table (focus species, focus mean, any fish, macro) + per-fold table
-  per_class_pooled.csv   every class, both arms, all metrics
-  per_fold.csv           focus species AP50 / recall per fold and arm
-  fig_ap50.png           AP50 per arm with 95% CI, and the difference with its 95% CI
-  fig_recall.png         the same for recall at conf 0.25
-  fig_all_metrics.png    focus species: AP50, AP50-95, P, R, F1, baseline vs copy-paste
-  fig_per_fold.png       focus species AP50 per fold, baseline -> copy-paste (marker size = test labels)
-  (cv_results.png        = fig_ap50.png, kept for the round-4 file name)
+  cv_results.md, per_class_pooled.csv, per_fold.csv
+  fig_ap50.png (also saved as cv_results.png), fig_recall.png, fig_all_metrics.png, fig_per_fold.png
 
-Usage (from copy_paste_experiment/):
-    python3 cv_evaluate.py                       # seed 0 (round 4)
-    python3 cv_evaluate.py --seeds 1             # the confirmation run on its own (primary)
-    python3 cv_evaluate.py --seeds 0,1           # both seeds averaged
+Usage:
+    python3 cv_evaluate.py                 # seed 0
+    python3 cv_evaluate.py --seeds 1
+    python3 cv_evaluate.py --seeds 0,1     # seeds averaged
 """
 import argparse
 import csv
@@ -48,7 +37,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 W_IMG, H_IMG = 1280, 720
 ARMS = [("baseline", "Baseline"), ("copypaste", "Copy-paste")]
-COL = {"baseline": "#2a78d6", "copypaste": "#eb6834"}  # validated pair (light surface)
+COL = {"baseline": "#2a78d6", "copypaste": "#eb6834"}  # colours (light background)
 INK, INK2, MUTED, GRID, AXIS, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#c3c2b7", "#fcfcfb"
 IOUS = np.linspace(0.5, 0.95, 10)
 
@@ -465,7 +454,7 @@ def make_figures(out, res, full, focus, focus_ids, per_fold, seed_txt):
     shutil.copy(ap, out / "cv_results.png")
     ci_figure("R", "Recall at conf 0.25", "fig_recall.png")
 
-    # all metrics, focus species: small multiples, one panel per species
+    # all metrics for the focus species, one panel per species
     mets = ["AP50", "AP50-95", "P", "R", "F1"]
     fig, axes = plt.subplots(1, len(focus), figsize=(3.6 * len(focus), 3.2), facecolor=SURFACE, sharey=True)
     axes = np.atleast_1d(axes)
@@ -499,7 +488,7 @@ def make_figures(out, res, full, focus, focus_ids, per_fold, seed_txt):
     for ax, s in zip(axes, focus):
         _clean(ax, "y")
         rows = [r for r in per_fold if r["species"] == s and r["baseline_AP50"] != "" and r["copypaste_AP50"] != ""]
-        # label positions: spread apart so neighbouring fold labels don't overlap
+        # spread the fold labels out so they don't overlap
         order = sorted(rows, key=lambda r: r["copypaste_AP50"])
         ypos, last = {}, -1.0
         for r in order:

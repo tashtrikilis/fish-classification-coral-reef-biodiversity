@@ -1,4 +1,4 @@
-"""Fish-level error analysis at a fixed operating point (no retraining, saved CV test predictions only)."""
+"""Per-fish error breakdown at conf 0.25, from the saved CV test predictions."""
 import sys, numpy as np, pandas as pd
 sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 import common as C

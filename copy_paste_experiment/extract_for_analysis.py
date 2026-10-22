@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
 """
-Collect everything the post-hoc analyses need from the finished CV runs, WITHOUT retraining or re-running inference.
+Collects what the supplementary analysis needs from the finished CV runs (no retraining or inference).
 
-Reads (all already on Aqua):
-  runs_cv/<run>/test_predictions.json   saved test-fold predictions (conf >= 0.001, NMS IoU 0.7, max_det 300)
-  runs_cv/<run>/results.csv, args.yaml, weights/best.pt   training log, settings, checkpoint
-  data_cv/folds.csv                     frame -> block, test fold (the existing partitions)
-  data_cv/fold<k>/det_baseline/labels/test/*.txt   ground truth used by cv_evaluate.py
-  *.o<jobid> PBS logs in this folder    wall-clock and the "Speed:" lines Ultralytics printed during validation
+Reads runs_cv/<run>/ (test_predictions.json, results.csv, args.yaml, weights/best.pt),
+data_cv/folds.csv, the fold test labels and the PBS logs in this folder.
 
-Writes analysis_bundle/ :
-  folds.csv, gt.json                    test partitions and ground-truth boxes (pixels), identical to cv_evaluate.py
-  preds/<run>.npz                       every saved prediction, losslessly re-packed (cls, conf, xyxy, mask IoU vs GT)
-  run_meta.csv                          epochs run, best epoch, training time, batch, optimiser, checkpoint size
-  model_complexity.csv                  parameters and GFLOPs at 640 and 1280 px for each architecture (CPU only)
-  logs/                                 copies of the PBS logs (text)
-  versions.txt
-Nothing is trained and no GPU is used.
+Writes analysis_bundle/:
+  folds.csv, gt.json     test folds and GT boxes in pixels (same as cv_evaluate.py uses)
+  preds/<run>.npz        all saved predictions (cls, conf, xyxy, mask IoU vs GT)
+  run_meta.csv           epochs, best epoch, training time, batch, optimiser, checkpoint size
+  model_complexity.csv   params and GFLOPs at 640 and 1280 px per architecture (CPU)
+  logs/, versions.txt
 """
 import csv, json, glob, os, re, shutil, sys
 from pathlib import Path
@@ -29,7 +23,7 @@ out = here / "analysis_bundle"
 (out / "preds").mkdir(parents=True, exist_ok=True)
 (out / "logs").mkdir(exist_ok=True)
 
-# ---------------- partitions and ground truth (same files cv_evaluate.py reads)
+# ---- folds and ground truth (same files cv_evaluate.py reads)
 data = here / "data_cv"
 shutil.copy(data / "folds.csv", out / "folds.csv")
 folds = {}
@@ -56,7 +50,7 @@ json.dump({"gt": {str(k): v for k, v in gt.items()}, "names": names,
           open(out / "gt.json", "w"))
 print(f"ground truth: {len(gt)} test frames, {sum(len(v) for v in gt.values())} fish")
 
-# ---------------- predictions (lossless re-pack) + per-run metadata
+# ---- predictions + per-run metadata
 pat = re.compile(r"^(detect|detect_s|detect_l|segment_s|segment_m|segment_l)_(baseline|copypaste)_f(\d)(_s1)?$")
 meta, total = [], 0
 for d in sorted(runs.iterdir()):
@@ -105,11 +99,11 @@ with open(out / "run_meta.csv", "w", newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(meta[0].keys())); w.writeheader(); w.writerows(meta)
 print(f"{len(meta)} runs packed, {total / 1e6:.0f} MB of predictions")
 
-# ---------------- PBS logs (text only)
+# ---- PBS logs
 for lf in glob.glob(str(here / "*.o[0-9]*")):
     shutil.copy(lf, out / "logs")
 
-# ---------------- model complexity (CPU; uses one trained checkpoint per architecture, so the 58-class head is counted)
+# ---- model complexity (one trained checkpoint per architecture so the 58-class head is included)
 rows = []
 try:
     import torch
