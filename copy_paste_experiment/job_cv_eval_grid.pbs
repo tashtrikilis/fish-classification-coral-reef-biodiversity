@@ -2,8 +2,6 @@
 #PBS -N cv_eval_grid
 #PBS -l select=1:ncpus=2:mem=24GB
 #PBS -l walltime=12:00:00
-#PBS -m abe
-#PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
 # Evaluates one model setup of the grid. Pass CFG (e.g. detect_s, segment_m), IOU (box|mask) and optionally

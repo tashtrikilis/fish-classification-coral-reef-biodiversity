@@ -2,8 +2,6 @@
 #PBS -N cv_prepare
 #PBS -l select=1:ncpus=4:mem=16GB
 #PBS -l walltime=02:00:00
-#PBS -m abe
-#PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
 # Builds data_cv/: the 5 CV folds for baseline and copy-paste, including the synthetic images.

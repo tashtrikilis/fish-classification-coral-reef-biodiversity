@@ -1,7 +1,7 @@
 # Fish Classification for Coral Reef Biodiversity Monitoring
 
 Code, results and data for the QUT EGH490 project *Fish Classification for Coral Reef Biodiversity Monitoring*
-(Natasha Trikilis, supervised by Dr Scarlett Raine, 2026), in collaboration with Project OceanOasis.
+(Natasha Trikilis, supervised by Dr Scarlett Raine, 2026), in collaboration with Project Ocean Oasis.
 
 The project evaluates [Ultralytics YOLO26](https://docs.ultralytics.com/) object detection and instance segmentation
 models on footage from a stationary reef camera at Kona, Hawaiʻi, and tests whether **targeted copy-paste augmentation**
@@ -122,4 +122,4 @@ Versions used: Ultralytics 8.4.126, PyTorch 2.13.0, Python 3.13.5.
 ## Licence
 
 Code: [MIT](LICENSE). Dataset release: images CC0, annotations CC BY 4.0 (see the README inside the zip).
-Trained YOLO26 weights, if released, are derived from Ultralytics models (AGPL-3.0).
+Ultralytics YOLO26 itself is AGPL-3.0.

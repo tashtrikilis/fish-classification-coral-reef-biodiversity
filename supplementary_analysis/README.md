@@ -8,17 +8,17 @@ The resulting tables are in [`tables/`](tables/).
 | Table 1: focus species (instances, encounters, donors) | `dataset_tables.py` | `table1_focus_species.csv` |
 | Table 2: baseline macro mAP50 / any-fish AP50 | from [`../results/`](../results/) (baseline columns) | |
 | Table 2: baseline mAP50-95 | `baseline_map5095.py` | `table2_baseline_map50_95.csv` |
-| §4.1.1: segmentation vs detection (box) | `report_tables.py` | `baseline_seg_vs_det_box.csv` |
+| In text: baseline segmentation vs detection (box) | `report_tables.py` | `baseline_seg_vs_det_box.csv` |
 | Table 3: baseline AP50, focus species | `report_tables.py` | `table3_baseline_focus_ap50.csv` |
 | Table 4: focus-species mean, change, CI, Holm p | `report_tables.py` | `table4_focus_mean_effect.csv` |
 | Table 5: per species, Holm p, runs improved | `report_tables.py` | `table5_species_effect.csv` |
 | Table 6: macro, non-target and any-fish changes | `report_tables.py` | `table6_nontarget_anyfish.csv` |
-| §6: gain in each configuration-seed run | `report_tables.py` | `focus_gain_per_run.csv` |
+| In text: gain in each configuration-seed run | `report_tables.py` | `focus_gain_per_run.csv` |
 | Table 7: computational cost | `cost_table.py` | `table7_cost.csv`, `log_meta.csv` |
 | Table 8: augmentation vs model capacity | `augmentation_vs_capacity.py` | `table8_augmentation_vs_capacity.csv` |
 | Table 9: precision, recall, F1 | `prf.py` → `prf_sum.py` | `table9_precision_recall_f1.csv` |
 | Tables 10–11: recall by size and by encounter | `errors.py` → `agg3.py` | `table10_recall_by_size.csv`, `table11_recall_by_encounter.csv` |
-| §4.2.2: error breakdown (missed / wrong species / poorly localised), confusions | `errors.py` → `agg_errors.py`, `agg2.py` | `error_breakdown.csv`, `confusions.csv` |
+| In text: error breakdown (missed / wrong species / poorly localised), confusions | `errors.py` → `agg_errors.py`, `agg2.py` | `error_breakdown.csv`, `confusions.csv` |
 | Table 12: donor sizes | `dataset_tables.py` | `table12_donor_sizes.csv` |
 | Table 13: per-class results, medium detection | `dataset_tables.py` + `../results/detect_m/seeds0-1/per_class_pooled.csv` | `table13_class_characteristics.csv` |
 | Table 14: prediction confidence | `errors.py` → `conf_paired.py` | `table14_confidence_correct.csv`, `confidence_false_positives.csv` |

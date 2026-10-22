@@ -22,7 +22,7 @@ for c in C.FOCUS_IDS:
                          delta=d[0], lo=np.percentile(db, 2.5), hi=np.percentile(db, 97.5),
                          missed_base=mis['baseline'], missed_cp=mis['copypaste'], wrong_base=wr['baseline'], wrong_cp=wr['copypaste']))
 S = pd.DataFrame(rows); S.to_csv(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', 'tables', 'table10_recall_by_size.csv'), index=False); print(S.round(3).to_string())
-# encounters (no bootstrap: each encounter is a unit; report recall per encounter, mean over the 12 models)
+# encounters: recall per encounter, mean over the 12 models (no bootstrap)
 rows = []
 for c in C.FOCUS_IDS:
     for e in sorted(F[F.cls == c].enc.unique()):

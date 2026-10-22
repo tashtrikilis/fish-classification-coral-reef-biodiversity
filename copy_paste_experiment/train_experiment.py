@@ -29,7 +29,7 @@ def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--task", required=True, choices=["detect", "segment"])
     p.add_argument("--arm", required=True, choices=["baseline", "copypaste"])
-    p.add_argument("--data-dir", type=Path, default=HERE / "data")
+    p.add_argument("--data-dir", type=Path, default=HERE / "data_cv" / "fold0")
     p.add_argument("--model", default=None, help="Default: yolo26m.pt / yolo26m-seg.pt")
     p.add_argument("--epochs", type=int, default=150)
     p.add_argument("--imgsz", type=int, default=1280)

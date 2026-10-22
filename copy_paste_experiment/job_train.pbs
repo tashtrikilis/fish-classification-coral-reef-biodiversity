@@ -2,8 +2,6 @@
 #PBS -N cp_train
 #PBS -l select=1:ncpus=8:ngpus=1:mem=64GB:gpu_id=H100
 #PBS -l walltime=24:00:00
-#PBS -m abe
-#PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
 # One training run. The submit scripts pass TASK (detect|segment), ARM (baseline|copypaste),

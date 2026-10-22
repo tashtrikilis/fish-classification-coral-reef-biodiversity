@@ -2,8 +2,6 @@
 #PBS -N cv_evaluate
 #PBS -l select=1:ncpus=2:mem=16GB
 #PBS -l walltime=08:00:00
-#PBS -m abe
-#PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
 # Pools the 5 test folds and compares baseline vs copy-paste with bootstrap confidence intervals.

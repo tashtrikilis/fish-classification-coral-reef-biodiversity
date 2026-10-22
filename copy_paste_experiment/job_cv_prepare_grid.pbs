@@ -2,8 +2,6 @@
 #PBS -N cv_prep_grid
 #PBS -l select=1:ncpus=4:mem=16GB
 #PBS -l walltime=02:00:00
-#PBS -m abe
-#PBS -M your_qut_id@qut.edu.au
 #PBS -j oe
 
 # Rebuilds the CV data into data_cv2/ with the segmentation roots added, then checks its detection data

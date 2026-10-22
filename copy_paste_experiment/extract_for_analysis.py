@@ -103,7 +103,7 @@ print(f"{len(meta)} runs packed, {total / 1e6:.0f} MB of predictions")
 for lf in glob.glob(str(here / "*.o[0-9]*")):
     shutil.copy(lf, out / "logs")
 
-# ---- model complexity (one trained checkpoint per architecture so the 58-class head is included)
+# ---- model complexity (uses a trained checkpoint so the 58-class head is counted)
 rows = []
 try:
     import torch

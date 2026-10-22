@@ -17,52 +17,46 @@ Trains and evaluates the 120 runs reported in the thesis on QUT's Aqua HPC (PBS 
 | `cv_evaluate.py` | Pools the 5 test folds, computes COCO AP (box or mask), precision/recall and the paired block-bootstrap CIs; writes the tables in `../results/` |
 | `extract_for_analysis.py` | Exports predictions, ground truth and run metadata for `../supplementary_analysis/` |
 | `job_*.pbs`, `submit_cv*.sh` | PBS job scripts and the three submit scripts below |
-| `labels_export/` | The YOLO-seg labels as exported from CVAT (original file names), read by the code |
+| `labels_export/` | The YOLO-seg labels as exported from CVAT (original file names, frames 0–2460), read by the code |
 
 ## Donor and paste-frame selection
 
-All of the selection below was finished **before any cross-validation run**. It was based only on how each fish or
-frame looks, never on model results, and was applied in the same way to every fold, model and seed. The baseline
-condition does not use it.
+The donor lists and camera-view labels were made before the cross-validation runs and are used the same way in every
+fold, model and seed. They only affect the augmented condition.
 
-**Donor candidates (Orangespine Unicornfish, Convict Tang).** `cv_select_donors.py` lists every labelled instance of
-the species that is:
+**Donor candidates (Orangespine Unicornfish, Convict Tang).** `cv_select_donors.py` lists every labelled instance that
+is at least 30 px on the shorter side of its box, at least 3 px from the frame edge, fills at least 0.45 of its box
+with its mask, and doesn't overlap another labelled fish. That gives 30 Orangespine Unicornfish and 23 Convict Tang
+candidates (`cv_donor_candidates.csv`).
 
-- at least 30 px on the shorter side of its box,
-- at least 3 px from every frame edge,
-- filling at least 0.45 of its box with its mask,
-- not overlapping any other labelled fish.
+**Visual check.** The candidates were checked as numbered crops with their mask outlines, and 7 of the 53 were dropped
+(3 Orangespine Unicornfish, 4 Convict Tang; `cv_donor_veto.txt`).
 
-This gives 30 Orangespine Unicornfish and 23 Convict Tang candidates (`cv_donor_candidates.csv`).
+**Forcepsfish donors.** Picked in an earlier visual review of the labelled Forcepsfish with a shorter side of at least
+20 px. 23 were kept (`experiment_donors.csv`).
 
-**Visual quality check.** The candidates were viewed as numbered crops with their mask outlines. 7 of the 53 were
-excluded (3 Orangespine Unicornfish, 4 Convict Tang; listed in `cv_donor_veto.txt`), and the other 46 were kept.
-
-**Forcepsfish donors.** These came from an earlier visual review of a gallery of labelled Forcepsfish (shorter side
-≥ 20 px). 23 were kept (`experiment_donors.csv`).
-
-**Per fold.** A donor is used in fold *k* only if its frame is a training frame of fold *k*, or lies outside frames
-1000–2461. No validation or test fish is ever pasted. Usable donors per fold (folds 1–5):
+**Per fold.** A donor is only used in fold *k* if its frame is a training frame of that fold, or lies outside frames
+1000–2461, so no validation or test fish is ever pasted. Usable donors per fold (folds 1–5):
 
 | Species | Donors | Encounters | Usable per fold |
 |---|---|---|---|
-| Forcepsfish | 23 | ~8 | 13 / 19 / 20 / 22 / 14 |
-| Orangespine Unicornfish | 27 | ~8 | 23 / 16 / 19 / 8 / 12 |
-| Convict Tang | 19 | ~7 | 13 / 14 / 14 / 13 / 4 |
+| Forcepsfish | 23 | 8 | 13 / 19 / 20 / 22 / 14 |
+| Orangespine Unicornfish | 27 | 9 | 23 / 16 / 19 / 8 / 12 |
+| Convict Tang | 19 | 7 | 13 / 14 / 14 / 13 / 4 |
 
-**Paste frames.** These are not chosen by hand. Each synthetic image uses a training frame drawn at random from the
-fold's training frames with the same camera view as the donor:
+Encounters are groups of donor frames, split wherever there's a gap of more than 15 frames.
 
-- The camera pans slowly between a reef view and a paler view of the mooring pole and open water.
-- One frame per minute of footage (61 samples) was labelled as reef or pole view.
-- A frame counts as reef view only if the samples on both sides of it are reef view. Frames in minutes where the
-  camera was turning, and frames before 1000, count as pole view.
-- 871 of the 1,817 frames from 1000–2816 are reef view (`approved_acceptor_frames.csv`).
+**Paste frames.** Each synthetic image uses a random training frame from the fold with the same camera view as the
+donor. The camera pans between a reef view and a paler view of the mooring pole and open water. One frame per minute
+(61 samples) was labelled reef or pole, and a frame counts as reef view only if the samples on both sides of it are
+reef view, so frames where the camera is turning, and frames before 1000, count as pole view. 871 of the 1,817 frames
+from 1000–2816 are reef view (`approved_acceptor_frames.csv`).
 
 ## Running
 
 1. Put every frame of the dataset release (`images/` and `donor_frames/images/`) in one folder and set
-   `IMAGES_DIR` in `config.sh`. Set `#PBS -M` (email) and `#PBS -P` (project) in the `job_*.pbs` files.
+   `IMAGES_DIR` in `config.sh`. If your cluster needs a project code or you want email updates, add
+   `#PBS -P` / `#PBS -M` lines to the `job_*.pbs` files.
 2. From this folder on the Aqua login node:
 
 ```bash

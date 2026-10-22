@@ -4,7 +4,7 @@ import common as C
 F = pd.read_csv('fish_level.csv'); Q = pd.read_csv('fp_level.csv')
 N = C.NAMES
 out = []
-# --- confusion: FN wrong species (true focus -> predicted other) and FP wrong species (true other -> predicted focus)
+# --- confusions: focus fish called something else, and other fish called a focus species
 for c in C.FOCUS_IDS:
     for a in C.ARMS:
         x = F[(F.cls == c) & (F.arm == a) & (F.cat == 'wrong_species')].pred_cls.value_counts()
