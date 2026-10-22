@@ -48,7 +48,7 @@ random sample; see [`media/`](media/) for details.
 ## Method
 
 **Targeted copy-paste.** A focus-species fish is cut out of a training frame with its mask, randomly rotated, flipped
-and resized, and pasted into another training frame with the same camera view, with edge-only Poisson blending.
+and resized, and pasted into another training frame with the same view type (reef or pole), with edge-only Poisson blending.
 
 ![Copy-paste pipeline: donor frame, mask cut-out, receiver frame, augmented image](media/copy_paste_pipeline.png)
 
@@ -63,7 +63,7 @@ frames within 15 frames of a test frame (buffer) are left out of training.
 | **Models** | YOLO26 detection and instance segmentation, sizes S / M / L, COCO-pretrained, `imgsz 1280`, up to 150 epochs (patience 50) |
 | **Conditions** | Baseline vs targeted copy-paste augmentation; everything else identical |
 | **Focus species** | Forcepsfish (93 instances), Orangespine Unicornfish (77), Convict Tang (33) |
-| **Copy-paste** | 23 / 27 / 19 donors taken only from each fold's training frames; random rotation (±20°) and flip; shrunk to sizes drawn from the species' real training sizes; pasted into frames from the same camera view without overlapping other fish; edge-only Poisson blending; 150 synthetic images per species per fold |
+| **Copy-paste** | 23 / 27 / 19 donors taken only from each fold's training frames; random rotation (±20°) and flip; shrunk to sizes drawn from the species' real training sizes; pasted into frames of the same view type (reef or pole) without overlapping other fish; edge-only Poisson blending; 150 synthetic images per species per fold |
 | **Evaluation** | 5-fold temporal block cross-validation: 49 blocks of 30 frames, validation (every second block of the next fold) used only for epoch selection, and a 15-frame buffer around test frames. Test-fold predictions are pooled, so every fish is tested once |
 | **Runs** | 6 configurations × 2 conditions × 5 folds × 2 seeds = 120 (84.6 H100 GPU-hours) |
 | **Statistics** | COCO AP50 (box IoU for detection, mask IoU for segmentation). Paired block bootstrap: 2,000 resamples of the 49 blocks, seeds averaged. Holm–Bonferroni across the 6 configurations and, separately, across the 3 species |
