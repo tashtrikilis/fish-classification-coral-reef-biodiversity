@@ -1,3 +1,3 @@
-# Donors to leave out (species,idx...) -- idx = the #number on qa_preview/cv_donors_<species>.jpg
+# Donors to leave out (species,idx...) - idx = the #number on qa_preview/cv_donors_<species>.jpg
 Orangespine Unicornfish,0,11,15
 Convict Tang,2,3,4,17

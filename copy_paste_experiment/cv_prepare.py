@@ -237,7 +237,7 @@ def main():
         sys.exit(f"{len(missing)} frames missing from {args.images_dir}, e.g. {missing[:10]}")
     if args.out.exists():
         if not args.force:
-            sys.exit(f"{args.out} exists -- pass --force to rebuild")
+            sys.exit(f"{args.out} exists - pass --force to rebuild")
         shutil.rmtree(args.out)
     args.out.mkdir(parents=True)
 
@@ -290,7 +290,7 @@ def main():
         for s, cid in zip(focus, focus_ids):
             pool = usable[s]
             if not pool or not train_sizes[s]:
-                print(f"  fold{k} {s}: no usable donors or no train instances -- skipped")
+                print(f"  fold{k} {s}: no usable donors or no train instances - skipped")
                 continue
             order = []
             while len(order) < args.synth_per_species * args.max_pastes:
@@ -369,7 +369,7 @@ def main():
                 ("baseline", "real frames only"),
                 ("copypaste", "real frames + size-matched, view-matched copy-paste images"))]:
             root = (fd / f"{kind}_{arm}").resolve()
-            (fd / f"{kind}_{arm}.yaml").write_text(f"# fold {k} / {kind} / {arm} -- built by cv_prepare.py (train = {desc})\n"
+            (fd / f"{kind}_{arm}.yaml").write_text(f"# fold {k} / {kind} / {arm} - built by cv_prepare.py (train = {desc})\n"
                                                 f"path: {root}\ntrain: images/train\nval: images/val\ntest: images/test\n"
                                                 + names_block)
         fsum = {"fold": k, "focus_species": focus, "frames": {sub: len(sets[k][sub]) for sub in ("train", "val", "test", "buffer_dropped")},

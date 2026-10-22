@@ -12,10 +12,10 @@ PROJ="${CONFIRM_WANDB_PROJECT:-egh490-cv-final}"
 
 for K in 0 1 2 3 4; do
     for ARM in baseline copypaste; do
-        [ -f "data_cv/fold$K/det_$ARM.yaml" ] || { echo "data_cv/fold$K/det_$ARM.yaml missing -- run submit_cv.sh first"; exit 1; }
+        [ -f "data_cv/fold$K/det_$ARM.yaml" ] || { echo "data_cv/fold$K/det_$ARM.yaml missing - run submit_cv.sh first"; exit 1; }
         [ -f "runs_cv/detect_${ARM}_f$K/test_predictions.json" ] || { echo "step 1 run detect_${ARM}_f$K missing"; exit 1; }
         if [ -f "runs_cv/detect_${ARM}_f${K}_s1/test_predictions.json" ]; then
-            echo "runs_cv/detect_${ARM}_f${K}_s1 already finished -- nothing to do for it? Move it aside to rerun."; exit 1
+            echo "runs_cv/detect_${ARM}_f${K}_s1 already finished - nothing to do for it? Move it aside to rerun."; exit 1
         fi
     done
 done

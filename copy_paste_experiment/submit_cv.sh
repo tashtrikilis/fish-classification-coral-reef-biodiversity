@@ -12,14 +12,14 @@ cd "$(dirname "$0")"
 source ./config.sh
 
 for f in cv_prepare.py cv_evaluate.py cv_donor_candidates.csv experiment_donors.csv; do
-    [ -f "$f" ] || { echo "$f is missing -- it is part of this folder"; exit 1; }
+    [ -f "$f" ] || { echo "$f is missing - it is part of this folder"; exit 1; }
 done
 if [ ! -f cv_donor_veto.txt ]; then
-    echo "cv_donor_veto.txt not found -- create it (empty = keep every candidate donor)"; exit 1
+    echo "cv_donor_veto.txt not found - create it (empty = keep every candidate donor)"; exit 1
 fi
-[ -d "$IMAGES_DIR" ] || { echo "IMAGES_DIR=$IMAGES_DIR does not exist -- edit config.sh"; exit 1; }
+[ -d "$IMAGES_DIR" ] || { echo "IMAGES_DIR=$IMAGES_DIR does not exist - edit config.sh"; exit 1; }
 if ls runs_cv/*/test_predictions.json >/dev/null 2>&1; then
-    echo "runs_cv/ already has finished runs -- move it aside first for a fresh run"; exit 1
+    echo "runs_cv/ already has finished runs - move it aside first for a fresh run"; exit 1
 fi
 
 PREP=$(qsub job_cv_prepare.pbs)

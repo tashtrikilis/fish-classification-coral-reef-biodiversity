@@ -69,7 +69,7 @@ def _per_class(metric_obj, class_id):
 
 
 def _parts(metrics):
-    """[('box', Metric), ('mask', Metric)] -- mask only for segmentation."""
+    """[('box', Metric), ('mask', Metric)] - mask only for segmentation."""
     out = [("box", metrics.box)]
     if hasattr(metrics, "seg"):
         out.append(("mask", metrics.seg))
@@ -224,7 +224,7 @@ def main():
     kind = "det" if args.task == "detect" else "seg"
     data_yaml = args.data_dir / f"{kind}_{args.arm}.yaml"
     if not data_yaml.exists():
-        raise FileNotFoundError(f"{data_yaml} not found -- run prepare_experiment.py first")
+        raise FileNotFoundError(f"{data_yaml} not found - run cv_prepare.py first")
     name = args.name or (f"{args.task}_{args.arm}" + (f"_i{args.imgsz}" if args.imgsz != 1280 else "")
                          + (f"_s{args.seed}" if args.seed else ""))
     args.project = args.project.resolve()  # Ultralytics puts relative project paths under runs/<task>/
@@ -274,7 +274,7 @@ def main():
                         wandb.define_metric(f"focus/{k}/{part}_{met}", step_metric="epoch")
             wandb.define_metric("epoch")
         except Exception as e:
-            print(f"W&B disabled ({e}) -- training continues, metrics still saved locally")
+            print(f"W&B disabled ({e}) - training continues, metrics still saved locally")
             wb, builtin_wandb = None, False
     else:
         builtin_wandb = False

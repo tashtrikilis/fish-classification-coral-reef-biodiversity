@@ -25,7 +25,7 @@ def main():
     print(f"compared {len(files)} detection files: {len(bad)} differ; image lists identical: {la == lb}; "
           f"segmentation yamls in {b}: {len(seg)}")
     if bad or la != lb or len(seg) != 10:
-        print("MISMATCH -- first differences:", bad[:10])
+        print("MISMATCH - first differences:", bad[:10])
         sys.exit(1)
     print("OK: detection data identical, segmentation roots present")
 
