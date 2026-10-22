@@ -18,6 +18,7 @@ improves recognition of under-represented fish species.
 - [Main results](#main-results)
 - [Repository structure](#repository-structure)
 - [Reproducing the results](#reproducing-the-results)
+- [Acknowledgements](#acknowledgements)
 - [Licence](#licence)
 
 ## Demo videos
