@@ -21,14 +21,15 @@ What this does, in order
    remaining val/test quota is filled from random blocks (seeded). Baseline and
    copy-paste use the IDENTICAL split.
 
-3. Writes four YOLO dataset roots, one per training run: data/det_baseline,
-   data/det_copypaste (bbox labels), data/seg_baseline, data/seg_copypaste (polygon
-   labels), each with images/{train,val,test}. They're separate so parallel jobs never
-   share Ultralytics' label cache files. Frames are symlinked to --images-dir by default
-   (--copy-images to copy instead), so the duplication costs no disk.
+3. Writes one YOLO dataset root per training run: data/{det,seg}_baseline,
+   data/{det,seg}_copypaste and data/{det,seg}_copypaste_scaled (bbox labels for det,
+   polygon labels for seg), each with images/{train,val,test}. They're separate so
+   parallel jobs never share Ultralytics' label cache files. Frames are symlinked to
+   --images-dir by default (--copy-images to copy instead), so the duplication costs
+   no disk. --no-size-matched drops the copypaste_scaled arm (round-1 layout).
 
 4. Generates synthetic copy-paste training images (TRAIN ONLY), one pasted fish
-   per image, --synth-per-species per focus species:
+   per image, --synth-per-species per focus species, for each copy-paste arm:
      - donors: only the manually approved instances in experiment_donors.csv,
        and only if their frame is a TRAIN frame or lies outside the dataset's
        frame range entirely (so it is never evaluated on).
@@ -38,23 +39,35 @@ What this does, in order
        that species.
      - augmentation: random rotation in +/- --max-rotation degrees (continuous,
        NOT 90-degree steps) and a horizontal flip with --hflip-prob. No
-       vertical flip and no rescaling.
+       vertical flip.
+     - size:
+         copypaste         donors pasted at their real (large) size. Same seed and
+                           random-call order as round 1, so the images are identical.
+         copypaste_scaled  each paste's target size (shorter side of the mask, px) is
+                           drawn from the REAL TRAIN-split sizes of that species, so
+                           pasted fish follow the real size distribution, big and
+                           small. Donors are only ever shrunk (INTER_AREA), never
+                           enlarged; a donor smaller than the drawn size stays as is.
+                           Uses seed + 1000. The test split is not used to pick sizes.
      - placement: never overlapping any real instance's bbox in the target.
-     - blend: Poisson (cv2.seamlessClone NORMAL_CLONE), falling back to the
-       LAB-matched feathered blend if seamlessClone errors.
+     - blend: edge-only Poisson -- cv2.seamlessClone on a thin ring around the
+       fish's outline, original donor pixels inside, so colours aren't washed out
+       (ring 3 px, thinner for tiny pastes). Falls back to the LAB-matched feathered
+       blend if seamlessClone errors.
    The synthetic image keeps all of the target frame's real labels, plus one
    new label for the pasted fish (polygon for seg, bbox for det).
-   Image files are written once to data/synth_images/ and linked into the copy-paste
-   roots' train folders.
+   Image files are written once per arm to data/synth_images/ (copypaste) and
+   data/synth_images_scaled/ (copypaste_scaled) and linked into the train folders.
 
-5. Writes the four data yamls (det_baseline, det_copypaste, seg_baseline,
-   seg_copypaste) with absolute paths, plus:
-     data/split.csv               frame -> split (+ block id)
-     data/synth_report.csv        every paste: donor, target, angle, flip, x, y
-     data/prepare_summary.json    counts used by train_experiment.py for W&B config
-     data/qa_synthetic_samples.jpg  random synthetic samples, zoomed, with the
-                                  pasted fish's LABEL polygon drawn from the
-                                  written label file (checks alignment)
+5. Writes the data yamls (one per root) with absolute paths, plus:
+     data/split.csv                     frame -> split (+ block id)
+     data/synth_report.csv              every paste: donor, target, angle, flip, x, y
+     data/synth_report_scaled.csv       same for the size-matched arm, plus scale
+     data/prepare_summary.json          counts used by train_experiment.py for W&B
+                                        config, and the real-vs-pasted size check
+     data/qa_synthetic_samples*.jpg     random synthetic samples per arm, zoomed, with
+                                        the pasted fish's LABEL polygon drawn from the
+                                        written label file (checks alignment)
 
 Usage (from copy_paste_experiment/):
     python3 prepare_experiment.py --images-dir /path/to/full_dataset
@@ -102,6 +115,8 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--copy-images", action="store_true", help="Copy frames instead of symlinking them.")
     p.add_argument("--qa-samples", type=int, default=24)
+    p.add_argument("--no-size-matched", action="store_true",
+                   help="Skip the size-matched copy-paste arm (copypaste_scaled) and build only round 1's arms.")
     p.add_argument("--force", action="store_true", help="Delete an existing --out folder first.")
     p.add_argument("--split-only", action="store_true",
                    help="Only compute + report the split (no images needed). For checking.")
@@ -444,7 +459,8 @@ def main():
     # One dataset root per run (det/seg x baseline/copypaste). Ultralytics keeps a labels/*.cache
     # file per label folder and deletes/rewrites it when the image list changes, so two jobs running
     # in parallel must never share a label folder. Image files are links, so this costs no disk.
-    ROOTS = [(kind, arm) for kind in ("det", "seg") for arm in ("baseline", "copypaste")]
+    ARMS = ["baseline", "copypaste"] + ([] if args.no_size_matched else ["copypaste_scaled"])
+    ROOTS = [(kind, arm) for kind in ("det", "seg") for arm in ARMS]
     for kind, arm in ROOTS:
         for sub in ("train", "val", "test"):
             (args.out / f"{kind}_{arm}" / "images" / sub).mkdir(parents=True, exist_ok=True)
@@ -468,7 +484,6 @@ def main():
             wr.writerow([f, split[f], block_of[f], int(block_of[f] in protected)])
 
     # ---- synthetic images
-    rng = random.Random(args.seed)
     img_cache = {}
 
     def load_rgb(f):
@@ -476,80 +491,137 @@ def main():
             img_cache[f] = cv2.cvtColor(cv2.imread(str(args.images_dir / f"frame_{f}.jpg")), cv2.COLOR_BGR2RGB)
         return img_cache[f]
 
-    report = []
-    synth_count = Counter()
-    fallback_count = Counter()
-    for s, cid in zip(focus, focus_ids):
-        pool = usable[s]
-        if not pool or not targets[s]:
-            print(f"  {s}: no usable donors or acceptor frames -- no synthetic images")
-            continue
-        order = []
-        while len(order) < args.synth_per_species:
-            batch = pool[:]
-            rng.shuffle(batch)
-            order.extend(batch)
-        order = order[:args.synth_per_species]  # balanced donor reuse
-        for k, d in enumerate(order):
-            src = load_rgb(d["frame"])
-            x0, y0, bw, bh = (int(round(v)) for v in poly_bbox_px(d["poly"], W_IMG, H_IMG))
-            x1, y1 = min(x0 + bw + 1, W_IMG), min(y0 + bh + 1, H_IMG)
-            full_mask = np.zeros((H_IMG, W_IMG), np.uint8)
-            cv2.fillPoly(full_mask, [np.round(d["poly"] * [W_IMG, H_IMG]).astype(np.int32)], 1)
-            patch, mask = src[y0:y1, x0:x1], full_mask[y0:y1, x0:x1]
-            placed = False
-            for _ in range(20):
-                tf = rng.choice(targets[s])
-                timg = load_rgb(tf)
-                p2, m2, angle, flipped = random_transform(patch, mask, rng, args.max_rotation, args.hflip_prob)
-                boxes = [poly_bbox_px(poly, W_IMG, H_IMG) for _, poly in labels.get(tf, [])]
-                spot = find_free_spot(rng, timg.shape, m2.shape, boxes)
-                if spot is None:
-                    continue
-                x, y = spot
-                if args.blend == "poisson_edge":
-                    out, fb = paste_poisson_edge(timg, p2, m2, x, y)
-                elif args.blend == "poisson":
-                    out, fb = paste_poisson(timg, p2, m2, x, y)
-                else:
-                    out, fb = paste_matched_feathered(timg, p2, m2, x, y), False
-                new_poly = mask_to_polygon_norm(m2, x, y, W_IMG, H_IMG)
-                if new_poly is None:
-                    continue
-                stem = f"synth_{s.replace(' ', '_')}_{k:04d}_t{tf}_d{d['frame']}"
-                img_path = args.out / "synth_images" / f"{stem}.jpg"
-                cv2.imwrite(str(img_path), cv2.cvtColor(out, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
-                for kind in ("det", "seg"):  # synthetic images go ONLY into the copy-paste roots' train
-                    link_or_copy(img_path, args.out / f"{kind}_copypaste" / "images" / "train" / f"{stem}.jpg",
-                                 args.copy_images)
-                real_rows = labels.get(tf, [])
-                for kind, fmt in (("det", det_line), ("seg", seg_line)):
-                    lines = [fmt(c, p) for c, p in real_rows] + [fmt(cid, new_poly)]
-                    (args.out / f"{kind}_copypaste" / "labels" / "train" / f"{stem}.txt").write_text("\n".join(lines) + "\n")
-                report.append({"synth": stem, "species": s, "donor_frame": d["frame"], "donor_source": d["source"],
-                               "target_frame": tf, "angle": round(angle, 1), "hflip": int(flipped),
-                               "x": x, "y": y, "w": m2.shape[1], "h": m2.shape[0], "poisson_fallback": int(fb)})
-                synth_count[s] += 1
-                fallback_count[s] += int(fb)
-                placed = True
-                break
-            if not placed:
-                print(f"  could not place donor f{d['frame']} after 20 targets -- skipped")
-        print(f"  {s}: wrote {synth_count[s]} synthetic images ({fallback_count[s]} used the matched-blend fallback)")
+    # Real-fish size distribution per focus species: shorter side (px) of the axis-aligned box of
+    # every real instance in the TRAIN split. The size-matched arm draws each paste's size from this.
+    train_sizes = {s: [min(poly_bbox_px(p, W_IMG, H_IMG)[2:]) for f in frames if split[f] == "train"
+                       for c, p in labels.get(f, []) if c == cid]
+                   for s, cid in zip(focus, focus_ids)}
 
-    with open(args.out / "synth_report.csv", "w", newline="") as fh:
-        if report:
-            wr = csv.DictWriter(fh, fieldnames=list(report[0].keys()))
-            wr.writeheader()
-            wr.writerows(report)
+    def generate_arm(arm, rng, img_dir, size_matched):
+        """Paste --synth-per-species fish per focus species into acceptor frames.
+        size_matched=False: donors pasted at their own size (round 1 'copypaste' arm, unchanged).
+        size_matched=True : after rotation/flip, each donor is shrunk (never enlarged) so the shorter
+                            side of its box equals a size drawn from that species' real train sizes."""
+        img_dir.mkdir(parents=True, exist_ok=True)
+        report, n_ok, n_fb = [], Counter(), Counter()
+        for s, cid in zip(focus, focus_ids):
+            pool = usable[s]
+            if not pool or not targets[s]:
+                print(f"  [{arm}] {s}: no usable donors or acceptor frames -- no synthetic images")
+                continue
+            order = []
+            while len(order) < args.synth_per_species:
+                batch = pool[:]
+                rng.shuffle(batch)
+                order.extend(batch)
+            order = order[:args.synth_per_species]  # balanced donor reuse
+            for k, d in enumerate(order):
+                src = load_rgb(d["frame"])
+                x0, y0, bw, bh = (int(round(v)) for v in poly_bbox_px(d["poly"], W_IMG, H_IMG))
+                x1, y1 = min(x0 + bw + 1, W_IMG), min(y0 + bh + 1, H_IMG)
+                full_mask = np.zeros((H_IMG, W_IMG), np.uint8)
+                cv2.fillPoly(full_mask, [np.round(d["poly"] * [W_IMG, H_IMG]).astype(np.int32)], 1)
+                patch, mask = src[y0:y1, x0:x1], full_mask[y0:y1, x0:x1]
+                placed = False
+                for _ in range(20):
+                    tf = rng.choice(targets[s])
+                    timg = load_rgb(tf)
+                    p2, m2, angle, flipped = random_transform(patch, mask, rng, args.max_rotation, args.hflip_prob)
+                    scale, target_px = 1.0, None
+                    if size_matched:
+                        target_px = rng.choice(train_sizes[s])
+                        scale = min(1.0, target_px / max(1, min(m2.shape)))
+                        if scale < 1.0:
+                            nw, nh = max(1, round(m2.shape[1] * scale)), max(1, round(m2.shape[0] * scale))
+                            p2 = cv2.resize(p2, (nw, nh), interpolation=cv2.INTER_AREA)
+                            m2 = (cv2.resize(m2.astype(np.float32), (nw, nh), interpolation=cv2.INTER_AREA) > 0.5
+                                  ).astype(np.uint8)
+                            ys, xs = np.where(m2 > 0)
+                            if len(ys) < 6:
+                                continue  # too few pixels left to be a fish
+                            p2 = np.ascontiguousarray(p2[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+                            m2 = np.ascontiguousarray(m2[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+                    boxes = [poly_bbox_px(poly, W_IMG, H_IMG) for _, poly in labels.get(tf, [])]
+                    spot = find_free_spot(rng, timg.shape, m2.shape, boxes)
+                    if spot is None:
+                        continue
+                    x, y = spot
+                    if args.blend == "poisson_edge":
+                        ring = 3.0 if not size_matched else float(np.clip(0.1 * min(m2.shape), 1.0, 3.0))
+                        out, fb = paste_poisson_edge(timg, p2, m2, x, y, ring_px=ring)
+                    elif args.blend == "poisson":
+                        out, fb = paste_poisson(timg, p2, m2, x, y)
+                    else:
+                        out, fb = paste_matched_feathered(timg, p2, m2, x, y), False
+                    new_poly = mask_to_polygon_norm(m2, x, y, W_IMG, H_IMG)
+                    if new_poly is None:
+                        continue
+                    tag = "synth" if not size_matched else "synthS"
+                    stem = f"{tag}_{s.replace(' ', '_')}_{k:04d}_t{tf}_d{d['frame']}"
+                    img_path = img_dir / f"{stem}.jpg"
+                    cv2.imwrite(str(img_path), cv2.cvtColor(out, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
+                    for kind in ("det", "seg"):  # synthetic images go ONLY into this arm's train folders
+                        link_or_copy(img_path, args.out / f"{kind}_{arm}" / "images" / "train" / f"{stem}.jpg",
+                                     args.copy_images)
+                    real_rows = labels.get(tf, [])
+                    for kind, fmt in (("det", det_line), ("seg", seg_line)):
+                        lines = [fmt(c, p) for c, p in real_rows] + [fmt(cid, new_poly)]
+                        (args.out / f"{kind}_{arm}" / "labels" / "train" / f"{stem}.txt").write_text("\n".join(lines) + "\n")
+                    row = {"synth": stem, "species": s, "donor_frame": d["frame"], "donor_source": d["source"],
+                           "target_frame": tf, "angle": round(angle, 1), "hflip": int(flipped),
+                           "x": x, "y": y, "w": m2.shape[1], "h": m2.shape[0], "poisson_fallback": int(fb)}
+                    if size_matched:
+                        row.update({"target_size_px": round(target_px, 1), "scale": round(scale, 3)})
+                    report.append(row)
+                    n_ok[s] += 1
+                    n_fb[s] += int(fb)
+                    placed = True
+                    break
+                if not placed:
+                    print(f"  [{arm}] could not place donor f{d['frame']} after 20 targets -- skipped")
+            print(f"  [{arm}] {s}: wrote {n_ok[s]} synthetic images ({n_fb[s]} used the matched-blend fallback)")
+        return report, n_ok, n_fb
+
+    # Round 1 arm first, with exactly the same random stream as before, so its images are unchanged.
+    arms = {"copypaste": generate_arm("copypaste", random.Random(args.seed), args.out / "synth_images", False)}
+    if not args.no_size_matched:
+        arms["copypaste_scaled"] = generate_arm("copypaste_scaled", random.Random(args.seed + 1000),
+                                                args.out / "synth_images_scaled", True)
+
+    for arm, (report, _, _) in arms.items():
+        fname = "synth_report.csv" if arm == "copypaste" else f"synth_report_{arm.split('_', 1)[1]}.csv"
+        with open(args.out / fname, "w", newline="") as fh:
+            if report:
+                wr = csv.DictWriter(fh, fieldnames=list(report[0].keys()))
+                wr.writeheader()
+                wr.writerows(report)
+
+    # ---- size check: do pasted fish match the real fish?
+    def pct(v):
+        v = np.asarray(v, float)
+        return {"n": int(len(v)), "p10": round(float(np.percentile(v, 10)), 1), "median": round(float(np.median(v)), 1),
+                "p90": round(float(np.percentile(v, 90)), 1), "under_20px": round(float((v < 20).mean()), 3)}
+    size_check = {}
+    print("\nfish size (shorter box side, px): real train fish vs pasted fish")
+    for s in focus:
+        size_check[s] = {"real_train": pct(train_sizes[s])}
+        line = f"  {s:13s} real train   " + "  ".join(f"{k} {v}" for k, v in size_check[s]["real_train"].items())
+        print(line)
+        for arm, (report, _, _) in arms.items():
+            v = [min(r["w"], r["h"]) for r in report if r["species"] == s]
+            if v:
+                size_check[s][arm] = pct(v)
+                print(f"  {'':13s} {arm:16s} " + "  ".join(f"{k} {x}" for k, x in size_check[s][arm].items()))
 
     # ---- yamls
     names_block = "names:\n" + "".join(f"  {k}: {names[k]}\n" for k in sorted(names))
+    desc = {"baseline": "train = real frames only",
+            "copypaste": "train = real frames + synthetic copy-paste images (donors at their own size)",
+            "copypaste_scaled": "train = real frames + synthetic copy-paste images (sizes matched to real train fish)"}
     for kind, arm in ROOTS:
         root = (args.out / f"{kind}_{arm}").resolve()
         (args.out / f"{kind}_{arm}.yaml").write_text(
-            f"# {kind} / {arm} -- built by prepare_experiment.py"
-            + (" (train = real frames + synthetic copy-paste images)" if arm == "copypaste" else " (train = real frames only)")
+            f"# {kind} / {arm} -- built by prepare_experiment.py ({desc[arm]})"
             + f"\npath: {root}\ntrain: images/train\nval: images/val\ntest: images/test\n" + names_block)
 
     # ---- summary
@@ -557,24 +629,30 @@ def main():
         "frame_range": [args.min_frame, args.max_frame], "block_size": args.block_size,
         "guard_frames": args.guard_frames, "split_seed": args.split_seed, "synth_seed": args.seed,
         "blend": args.blend, "acceptor_same_species": args.acceptor_same_species, "max_rotation": args.max_rotation, "hflip_prob": args.hflip_prob,
-        "frames_per_split": dict(n_split), "focus_species": focus,
+        "frames_per_split": dict(n_split), "focus_species": focus, "arms": list(arms),
+        "size_check": size_check,
         "focus": {s: {"class_id": cid,
                       "real_instances": {sp: inst[sp][cid] for sp in ("train", "val", "test")},
                       "donors_usable": len(usable[s]),
                       "donor_frames": sorted({d["frame"] for d in usable[s]}),
                       "acceptor_frames": len(targets[s]),
-                      "synthetic_images": synth_count[s],
-                      "poisson_fallbacks": fallback_count[s]}
+                      "synthetic_images": arms["copypaste"][1][s],
+                      "poisson_fallbacks": arms["copypaste"][2][s],
+                      "synthetic_images_by_arm": {a: v[1][s] for a, v in arms.items()},
+                      "poisson_fallbacks_by_arm": {a: v[2][s] for a, v in arms.items()}}
                   for s, cid in zip(focus, focus_ids)},
     }
     (args.out / "prepare_summary.json").write_text(json.dumps(summary, indent=2))
 
-    # ---- QA sheet: draw the pasted fish's polygon FROM THE WRITTEN LABEL FILE
-    if report and args.qa_samples > 0:
+    # ---- QA sheets: draw the pasted fish's polygon FROM THE WRITTEN LABEL FILE
+    for arm, (report, _, _) in arms.items():
+        if not report or args.qa_samples <= 0:
+            continue
+        img_dir = args.out / ("synth_images" if arm == "copypaste" else "synth_images_scaled")
         tiles = []
         for r in random.Random(1).sample(report, min(args.qa_samples, len(report))):
-            img = cv2.imread(str(args.out / "synth_images" / f"{r['synth']}.jpg"))
-            last = (args.out / "seg_copypaste" / "labels" / "train" / f"{r['synth']}.txt").read_text().strip().splitlines()[-1]
+            img = cv2.imread(str(img_dir / f"{r['synth']}.jpg"))
+            last = (args.out / f"seg_{arm}" / "labels" / "train" / f"{r['synth']}.txt").read_text().strip().splitlines()[-1]
             poly = (np.array(last.split()[1:], float).reshape(-1, 2) * [W_IMG, H_IMG]).astype(np.int32)
             cv2.polylines(img, [poly], True, (255, 0, 255), 1)
             x0, y0 = poly.min(0)
@@ -583,18 +661,18 @@ def main():
             crop = img[max(0, y0 - pad):min(H_IMG, y1 + pad), max(0, x0 - pad):min(W_IMG, x1 + pad)]
             crop = cv2.resize(crop, (300, 300))
             cv2.rectangle(crop, (0, 0), (300, 22), (0, 0, 0), -1)
-            cv2.putText(crop, f"{r['species'][:10]} d{r['donor_frame']} t{r['target_frame']}", (4, 16),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+            cv2.putText(crop, f"{r['species'][:10]} {min(r['w'], r['h'])}px d{r['donor_frame']} t{r['target_frame']}",
+                        (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1)
             tiles.append(crop)
         while len(tiles) % 6:
             tiles.append(np.zeros_like(tiles[0]))
         sheet = np.vstack([np.hstack(tiles[i:i + 6]) for i in range(0, len(tiles), 6)])
-        cv2.imwrite(str(args.out / "qa_synthetic_samples.jpg"), sheet, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        name = "qa_synthetic_samples.jpg" if arm == "copypaste" else "qa_synthetic_samples_scaled.jpg"
+        cv2.imwrite(str(args.out / name), sheet, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
     print(f"\ndone -> {args.out}")
-    for kind in ("det", "seg"):
-        for arm in ("baseline", "copypaste"):
-            print(f"  {args.out / f'{kind}_{arm}.yaml'}")
+    for kind, arm in ROOTS:
+        print(f"  {args.out / f'{kind}_{arm}.yaml'}")
 
 
 if __name__ == "__main__":

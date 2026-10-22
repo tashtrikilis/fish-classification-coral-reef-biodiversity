@@ -1,0 +1,62 @@
+\begin{table}[htbp]
+    \centering
+    \caption[Focus-species recall by fish size, before and after copy-paste augmentation]{Recall of the three focus species by fish size, before and after targeted copy-paste augmentation, pooled over the six YOLO26 configurations and two training seeds.}
+    \label{tab:recall_size}
+    \small
+    \setlength{\tabcolsep}{6pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{llcccc}
+        \toprule
+        \textbf{Species} & \textbf{Size (px)} & \textbf{Fish} & \textbf{Baseline} & \textbf{Augmented} & $\boldsymbol{\Delta}$\textbf{ recall [95\% CI]} \\
+        \midrule
+        Forcepsfish & $<$16 & 27 & 0.028 & 0.052 & +0.025 [+0.003, +0.062] \\
+         & 16--24 & 20 & 0.346 & 0.408 & +0.062 [+0.033, +0.102] \\
+         & 24--40 & 24 & 0.250 & 0.486 & +0.236 [+0.112, +0.417] \\
+         & $\geq$40 & 22 & 0.511 & 0.739 & +0.227 [+0.042, +0.380] \\
+        \midrule
+        Orangespine Unicornfish & $<$16 & 4$^{\dagger}$ & 0.021 & 0.000 & $-$0.021 [$-$0.083, 0.000] \\
+         & 16--24 & 14 & 0.071 & 0.119 & +0.048 [$-$0.018, +0.153] \\
+         & 24--40 & 44 & 0.186 & 0.231 & +0.045 [+0.012, +0.106] \\
+         & $\geq$40 & 15 & 0.178 & 0.217 & +0.039 [0.000, +0.204] \\
+        \midrule
+        Convict Tang & $<$16 & 2$^{\dagger}$ & 0.000 & 0.000 & 0.000 [0.000, 0.000] \\
+         & 16--24 & 3$^{\dagger}$ & 0.028 & 0.222 & +0.194 [+0.083, +0.250] \\
+         & 24--40 & 11 & 0.280 & 0.652 & +0.371 [+0.283, +0.500] \\
+         & $\geq$40 & 17 & 0.505 & 0.681 & +0.176 [+0.067, +0.389] \\
+        \bottomrule
+    \end{tabular}
+
+    \vspace{3pt}
+    \begin{minipage}{\linewidth}
+    \footnotesize\textit{Note.} Size is the shorter side of the labelled bounding box. Recall is the share of labelled fish
+    detected as the correct species at a confidence threshold of 0.25 and box IoU $\geq 0.5$, pooled over the six
+    configurations and two seeds (box IoU is used for all models in this analysis). Fish = test instances per run.
+    $\Delta$ = augmented minus baseline; 95\% CIs from 2,000 paired block-bootstrap resamples, not corrected for multiple
+    comparisons. $^{\dagger}$Fewer than five fish; estimates are unreliable. Post-hoc analysis.
+    \end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption[Change in focus-species recall by encounter]{Change in recall of the three focus species across individual encounters following targeted copy-paste augmentation.}
+    \label{tab:recall_encounter}
+    \small
+    \setlength{\tabcolsep}{6pt}
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Species} & \textbf{Encounters} & \textbf{Improved} & \textbf{Unchanged} & \textbf{Worse} & \textbf{Range of $\boldsymbol{\Delta}$ recall} \\
+        \midrule
+        Forcepsfish             & 12 & 11 & 1 & 0 & 0.000 to +0.406 \\
+        Orangespine Unicornfish & 9  & 6  & 1 & 2 & $-$0.167 to +0.250 \\
+        Convict Tang            & 6  & 6  & 0 & 0 & +0.133 to +0.472 \\
+        \bottomrule
+    \end{tabular}
+
+    \vspace{3pt}
+    \begin{minipage}{\linewidth}
+    \footnotesize\textit{Note.} An encounter is a run of frames containing the species no more than 15 frames apart.
+    Recall per encounter is calculated as in Table~\ref{tab:recall_size}, pooled over the six configurations and two seeds.
+    Improved, unchanged and worse refer to the sign of the change in recall. Post-hoc analysis.
+    \end{minipage}
+\end{table}

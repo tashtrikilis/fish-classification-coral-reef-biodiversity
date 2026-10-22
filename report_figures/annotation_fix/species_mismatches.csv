@@ -1,0 +1,210 @@
+frame,roboflow,corrected,iou,w_px,h_px,area,cx,cy
+1215,Redlip Parrotfish- Male,Redlip Parrotfish - Male,0.79,270,73,19710,334,453
+1007,Lowfin Chub,Highfin Chub,0.68,212,82,17384,106,562
+1605,Longnose Butterflyfish,Forcepsfish,0.81,179,85,15215,1072,385
+1325,Bullethead Parrotfish- Female,Bullethead Unicornfish,0.9,131,108,14148,442,404
+1242,Ringtail Surgeonfish,Goldring Surgeonfish,0.85,179,65,11635,261,33
+1604,Longnose Butterflyfish,Forcepsfish,0.82,155,72,11160,626,494
+1998,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.97,130,84,10920,417,486
+1668,Longnose Butterflyfish,Forcepsfish,0.89,147,70,10290,1062,393
+1483,Acanthuridae,Brown Surgeonfish,0.86,147,67,9849,890,331
+1921,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.84,178,55,9790,126,691
+1603,Longnose Butterflyfish,Forcepsfish,0.86,103,95,9785,137,259
+2041,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.89,125,71,8875,530,176
+1624,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.88,98,87,8526,736,435
+1216,Redlip Parrotfish- Male,Redlip Parrotfish - Male,0.64,144,58,8352,791,420
+1785,Longnose Butterflyfish,Forcepsfish,0.83,100,80,8000,123,265
+1667,Longnose Butterflyfish,Forcepsfish,0.84,114,67,7638,750,479
+1662,Longnose Butterflyfish,Forcepsfish,0.88,124,61,7564,551,116
+1997,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.82,104,72,7488,52,369
+1431,Spectacled Parrotfish- Male,Redlip Parrotfish - Male,0.92,88,85,7480,1124,609
+1419,Palenose Parrotfish- Male,Redlip Parrotfish - Male,0.9,79,92,7268,1016,634
+1605,Longnose Butterflyfish,Forcepsfish,0.8,86,80,6880,306,340
+1276,Brown Surgeonfish,Goldring Surgeonfish,0.72,101,68,6868,765,454
+1661,Longnose Butterflyfish,Forcepsfish,0.81,115,59,6785,242,100
+1999,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.82,118,57,6726,835,546
+1600,Acanthuridae,Brown Surgeonfish,0.92,129,52,6708,982,500
+1217,Redlip Parrotfish- Male,Redlip Parrotfish - Male,0.83,128,51,6528,1028,449
+2061,Acanthuridae,Brown Surgeonfish,0.83,121,53,6413,1060,130
+1426,Yellow Tang,Orangeband Surgeonfish,0.87,89,72,6408,1156,683
+1323,Brown Surgeonfish,Yellow Tang,0.81,85,72,6120,324,542
+2142,Bluelined Surgeonfish,Brown Surgeonfish,0.52,103,58,5974,1123,450
+1426,Highfin Chub,Lowfin Chub,0.84,113,52,5876,1080,615
+2030,Palenose Parrotfish- Male,Palenose Parrotfish - Male,0.8,80,72,5760,810,460
+1600,Acanthuridae,Brown Surgeonfish,0.83,112,50,5600,882,589
+1787,Acanthuridae,Brown Surgeonfish,0.84,95,57,5415,406,47
+1606,Longnose Butterflyfish,Forcepsfish,0.8,102,52,5304,672,464
+2305,Blackspot Sergeant,Convict Tang,0.85,94,55,5170,820,598
+1173,Multiband Butterflyfish,Moorish Idol,0.75,85,60,5100,117,322
+2058,Acanthuridae,Brown Surgeonfish,0.93,100,51,5100,1005,147
+1431,Highfin Chub,Lowfin Chub,0.9,101,50,5050,1228,557
+1426,Yellow Tang,Orangeband Surgeonfish,0.97,58,86,4988,1248,621
+1254,Goldring Surgeonfish,Orangeband Surgeonfish,0.8,94,51,4794,923,566
+2068,Acanthuridae,Brown Surgeonfish,0.81,94,51,4794,1119,39
+2022,Acanthuridae,Brown Surgeonfish,0.91,70,68,4760,571,185
+2008,Redlip Parrotfish- Female,Bullethead Parrotfish - Female,0.81,94,50,4700,1045,256
+2007,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.87,104,45,4680,667,348
+1912,Yellow Tang,Blackfin Chromis,0.63,55,85,4675,93,362
+1606,Longnose Butterflyfish,Forcepsfish,0.84,73,64,4672,1242,330
+2072,Acanthuridae,Brown Surgeonfish,0.77,59,79,4661,404,569
+1182,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.59,63,72,4536,559,382
+2188,Chevron Tang,Brown Surgeonfish,0.94,85,50,4250,452,651
+1417,Highfin Chub,Lowfin Chub,0.7,96,44,4224,1005,493
+1363,Acanthuridae,Brown Surgeonfish,0.94,93,45,4185,938,446
+1276,Goldring Surgeonfish,Orangeband Surgeonfish,0.66,73,56,4088,180,293
+1588,Acanthuridae,Brown Surgeonfish,0.66,84,48,4032,617,504
+1652,Acanthuridae,Brown Surgeonfish,0.85,74,54,3996,306,366
+1416,Longnose Butterflyfish,Lowfin Chub,0.64,95,42,3990,824,459
+2128,Redlip Parrotfish- Female,Raccoon Butterflyfish,0.86,62,61,3782,976,64
+1382,Acanthuridae,Brown Surgeonfish,0.9,60,63,3780,650,34
+2065,Acanthuridae,Brown Surgeonfish,0.79,67,56,3752,1170,162
+2068,Bluelined Surgeonfish,Brown Surgeonfish,0.84,81,45,3645,1196,299
+1311,Brown Surgeonfish,Goldring Surgeonfish,0.66,93,39,3627,562,367
+1665,Bluelined Surgeonfish,Brown Surgeonfish,0.65,75,48,3600,236,433
+2143,Saddle Wrasse- Male,Saddle Wrasse - Male,0.85,57,62,3534,364,208
+1920,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.94,80,44,3520,600,518
+1417,Palenose Parrotfish- Male,Redlip Parrotfish - Male,0.65,39,90,3510,1026,558
+1340,Acanthuridae,Brown Surgeonfish,0.84,76,46,3496,618,246
+1762,Acanthuridae,Brown Surgeonfish,0.9,79,43,3397,430,84
+2179,Acanthuridae,Brown Surgeonfish,0.8,94,36,3384,942,343
+2052,Acanthuridae,Brown Surgeonfish,0.73,66,51,3366,431,592
+1354,Acanthuridae,Brown Surgeonfish,0.83,80,42,3360,422,182
+1420,Palenose Parrotfish- Male,Redlip Parrotfish - Male,0.78,80,42,3360,847,647
+2160,Longnose Butterflyfish,Forcepsfish,0.84,74,45,3330,499,213
+1685,Saddle Wrasse- Male,Saddle Wrasse - Male,0.59,114,29,3306,616,588
+2199,Ringtail Surgeonfish,Orangespine Unicornfish,0.86,65,50,3250,152,391
+2013,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.85,61,53,3233,82,390
+2069,Bluelined Surgeonfish,Brown Surgeonfish,0.69,51,62,3162,1142,614
+1787,Acanthuridae,Brown Surgeonfish,0.82,81,39,3159,448,159
+1343,Acanthuridae,Brown Surgeonfish,0.82,79,39,3081,536,327
+1332,Acanthuridae,Brown Surgeonfish,0.88,90,34,3060,1152,423
+1416,Palenose Parrotfish- Male,Redlip Parrotfish - Male,0.5,43,71,3053,1036,556
+1359,Acanthuridae,Brown Surgeonfish,0.7,91,33,3003,850,488
+1666,Longnose Butterflyfish,Forcepsfish,0.86,41,73,2993,665,544
+1359,Acanthuridae,Brown Surgeonfish,0.79,87,34,2958,1082,446
+1379,Acanthuridae,Brown Surgeonfish,0.81,82,36,2952,896,374
+1382,Acanthuridae,Brown Surgeonfish,0.9,79,37,2923,1058,358
+1426,Yellow Tang,Orangeband Surgeonfish,0.62,52,56,2912,1121,588
+1715,Acanthuridae,Brown Surgeonfish,0.77,93,30,2790,593,15
+1206,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.74,76,36,2736,62,414
+2142,Saddle Wrasse- Male,Saddle Wrasse - Male,0.88,53,51,2703,358,219
+1420,Highfin Chub,Lowfin Chub,0.76,90,30,2700,1123,478
+1641,Acanthuridae,Brown Surgeonfish,0.85,54,50,2700,1235,167
+1174,Ornate Butterfly Fish,Orangeband Surgeonfish,0.68,69,38,2622,150,245
+1186,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.58,77,34,2618,616,421
+1255,Goldring Surgeonfish,Orangeband Surgeonfish,0.71,62,42,2604,195,266
+1248,Acanthuridae,Brown Surgeonfish,0.75,81,32,2592,1128,123
+1936,Acanthuridae,Brown Surgeonfish,0.84,76,34,2584,733,547
+1756,Acanthuridae,Goldring Surgeonfish,0.96,66,39,2574,366,221
+1947,Acanthuridae,Brown Surgeonfish,0.85,77,33,2541,184,496
+2137,Saddle Wrasse- Male,Saddle Wrasse - Male,0.7,55,45,2475,580,350
+1426,Yellow Tang,Orangeband Surgeonfish,0.82,107,23,2461,958,708
+1717,Acanthuridae,Brown Surgeonfish,0.81,86,28,2408,729,14
+2006,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.84,60,40,2400,289,497
+1436,Highfin Chub,Lowfin Chub,0.78,50,47,2350,1254,481
+1784,Longnose Butterflyfish,Forcepsfish,0.69,50,47,2350,333,226
+2101,Bluelined Surgeonfish,Brown Surgeonfish,0.79,63,37,2331,460,442
+2189,Multiband Butterflyfish,Convict Tang,0.75,57,40,2280,740,315
+1442,Acanthuridae,Brown Surgeonfish,0.71,64,35,2240,697,206
+1937,Acanthuridae,Brown Surgeonfish,0.75,66,33,2178,710,525
+1426,Yellow Tang,Orangeband Surgeonfish,0.73,54,40,2160,936,592
+1549,Moorish Idol,Fourspot Butterflyfish,0.76,43,50,2150,1153,400
+1531,Orangeband Surgeonfish,Brown Surgeonfish,0.75,34,63,2142,746,456
+2145,Acanthuridae,Brown Surgeonfish,0.8,52,41,2132,762,290
+1929,Acanthuridae,Brown Surgeonfish,0.84,68,31,2108,205,174
+1604,Longnose Butterflyfish,Forcepsfish,0.53,24,87,2088,90,274
+2078,Orangeband Surgeonfish,Goldring Surgeonfish,0.67,36,58,2088,452,351
+2096,Longnose Butterflyfish,Forcepsfish,0.86,51,40,2040,138,210
+2412,Acanthuridae,Brown Surgeonfish,0.76,58,32,1856,309,295
+2096,Longnose Butterflyfish,Forcepsfish,0.7,46,40,1840,65,236
+1205,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.83,51,36,1836,314,514
+1930,Acanthuridae,Brown Surgeonfish,0.74,63,29,1827,354,116
+1413,Redlip Parrotfish- Male,Redlip Parrotfish - Male,0.69,68,26,1768,1219,494
+2128,Redlip Parrotfish- Female,Raccoon Butterflyfish,0.8,49,36,1764,762,128
+2097,Longnose Butterflyfish,Forcepsfish,0.93,49,35,1715,110,267
+1169,Moorish Idol,Ornate Butterfly Fish,0.82,55,31,1705,818,474
+1388,Acanthuridae,Brown Surgeonfish,0.87,47,36,1692,951,232
+2042,Acanthuridae,Brown Surgeonfish,0.67,48,35,1680,1001,78
+2041,Acanthuridae,Brown Surgeonfish,0.7,54,31,1674,941,53
+1183,Acanthuridae,Brown Surgeonfish,0.82,50,33,1650,589,417
+2144,Saddle Wrasse- Male,Saddle Wrasse - Male,0.6,21,78,1638,418,70
+2056,Brown Surgeonfish,Goldring Surgeonfish,0.6,48,34,1632,248,171
+1414,Redlip Parrotfish- Male,Redlip Parrotfish - Male,0.72,58,28,1624,1159,481
+1203,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.89,49,33,1617,312,552
+1382,Acanthuridae,Brown Surgeonfish,0.81,46,35,1610,1101,418
+2106,Acanthuridae,Brown Surgeonfish,0.83,61,26,1586,1172,86
+1641,Acanthuridae,Brown Surgeonfish,0.57,51,31,1581,342,421
+2384,Acanthuridae,Brown Surgeonfish,0.79,51,30,1530,630,149
+1085,Acanthuridae,Brown Surgeonfish,0.69,47,32,1504,793,374
+2015,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.73,50,30,1500,285,480
+1508,Acanthuridae,Brown Surgeonfish,0.75,56,26,1456,714,440
+1402,Acanthuridae,Brown Surgeonfish,0.74,50,29,1450,442,537
+1173,Multiband Butterflyfish,Orangeband Surgeonfish,0.73,30,47,1410,153,232
+1779,Longnose Butterflyfish,Forcepsfish,0.78,51,27,1377,1115,178
+2026,Threadfin Butterflyfish,Lined Butterflyfish,0.63,25,55,1375,108,512
+1207,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.74,40,34,1360,20,391
+1245,Acanthuridae,Brown Surgeonfish,0.8,54,25,1350,938,98
+1426,Yellow Tang,Orangeband Surgeonfish,0.74,25,54,1350,1018,570
+1212,Scaridae,Redlip Parrotfish - Female,0.77,56,24,1344,708,556
+1401,Acanthuridae,Brown Surgeonfish,0.68,56,24,1344,502,475
+2095,Longnose Butterflyfish,Forcepsfish,0.81,54,24,1296,27,226
+1386,Acanthuridae,Goldring Surgeonfish,0.76,44,29,1276,882,161
+2043,Acanthuridae,Brown Surgeonfish,0.64,53,24,1272,1094,168
+2024,Threadfin Butterflyfish,Lined Butterflyfish,0.66,47,27,1269,283,396
+2072,Acanthuridae,Brown Surgeonfish,0.74,50,25,1250,309,227
+1184,Redlip Parrotfish- Female,Redlip Parrotfish - Female,0.59,26,47,1222,579,398
+1398,Acanthuridae,Brown Surgeonfish,0.69,45,27,1215,632,461
+2057,Brown Surgeonfish,Goldring Surgeonfish,0.56,40,30,1200,75,125
+2097,Longnose Butterflyfish,Forcepsfish,0.63,29,41,1189,186,228
+2013,Acanthuridae,Goldring Surgeonfish,0.87,34,34,1156,926,171
+1247,Acanthuridae,Brown Surgeonfish,0.69,52,22,1144,1040,154
+1837,Acanthuridae,Brown Surgeonfish,0.79,38,29,1102,588,115
+2015,Longnose Butterflyfish,Forcepsfish,0.69,45,24,1080,963,482
+2448,Longnose Butterflyfish,Forcepsfish,0.54,48,22,1056,88,173
+1836,Acanthuridae,Brown Surgeonfish,0.65,39,27,1053,553,139
+1247,Acanthuridae,Brown Surgeonfish,0.67,37,28,1036,948,53
+1340,Acanthuridae,Brown Surgeonfish,0.69,49,21,1029,305,151
+1475,Acanthuridae,Brown Surgeonfish,0.65,41,25,1025,874,205
+2384,Acanthuridae,Brown Surgeonfish,0.79,34,30,1020,711,163
+2024,Threadfin Butterflyfish,Lined Butterflyfish,0.65,28,35,980,349,480
+1405,Acanthuridae,Brown Surgeonfish,0.79,40,24,960,187,449
+1754,Acanthuridae,Brown Surgeonfish,0.62,43,22,946,332,151
+1401,Acanthuridae,Brown Surgeonfish,0.76,31,30,930,592,471
+2100,Longnose Butterflyfish,Forcepsfish,0.53,30,31,930,320,256
+2014,Longnose Butterflyfish,Forcepsfish,0.82,29,29,841,838,276
+2449,Longnose Butterflyfish,Forcepsfish,0.73,34,24,816,312,196
+2051,Acanthuridae,Brown Surgeonfish,0.53,37,22,814,428,91
+1247,Acanthuridae,Brown Surgeonfish,0.74,39,20,780,1020,120
+2025,Acanthuridae,Brown Surgeonfish,0.63,39,20,780,363,404
+2016,Longnose Butterflyfish,Forcepsfish,0.65,32,24,768,984,473
+1388,Acanthuridae,Brown Surgeonfish,0.62,36,21,756,771,138
+2130,Acanthuridae,Brown Surgeonfish,0.68,37,20,740,330,116
+1246,Acanthuridae,Brown Surgeonfish,0.8,36,20,720,833,58
+2133,Acanthuridae,Brown Surgeonfish,0.76,30,24,720,1010,424
+1462,Longnose Butterflyfish,Forcepsfish,0.58,35,20,700,18,594
+1779,Longnose Butterflyfish,Forcepsfish,0.66,27,25,675,1191,205
+2105,Acanthuridae,Brown Surgeonfish,0.65,35,19,665,352,166
+1248,Acanthuridae,Brown Surgeonfish,0.64,36,18,648,735,86
+2012,Longnose Butterflyfish,Forcepsfish,0.6,36,18,648,817,319
+2129,Acanthuridae,Brown Surgeonfish,0.58,24,27,648,365,86
+1245,Acanthuridae,Brown Surgeonfish,0.73,34,19,646,863,98
+2099,Longnose Butterflyfish,Forcepsfish,0.6,20,32,640,347,213
+1247,Acanthuridae,Brown Surgeonfish,0.64,35,18,630,903,109
+2010,Longnose Butterflyfish,Forcepsfish,0.73,36,17,612,945,356
+2012,Longnose Butterflyfish,Forcepsfish,0.57,21,26,546,952,347
+1401,Acanthuridae,Brown Surgeonfish,0.63,27,20,540,819,524
+2005,Bullethead Parrotfish- Female,Bullethead Parrotfish - Female,0.51,18,29,522,263,460
+1382,Acanthuridae,Brown Surgeonfish,0.78,19,27,513,419,118
+2009,Longnose Butterflyfish,Forcepsfish,0.62,16,31,496,872,389
+2072,Acanthuridae,Brown Surgeonfish,0.62,30,16,480,235,216
+2128,Acanthuridae,Brown Surgeonfish,0.62,32,15,480,559,79
+1400,Acanthuridae,Brown Surgeonfish,0.67,25,19,475,740,425
+1402,Acanthuridae,Brown Surgeonfish,0.59,26,18,468,766,414
+1246,Acanthuridae,Brown Surgeonfish,0.68,31,15,465,816,78
+1478,Acanthuridae,Brown Surgeonfish,0.54,31,15,465,505,142
+2121,Acanthuridae,Brown Surgeonfish,0.57,29,16,464,702,139
+1130,Orangeband Surgeonfish,Yellow Tang,0.54,20,19,380,604,308
+1128,Orangeband Surgeonfish,Yellow Tang,0.53,21,17,357,342,237
+1401,Acanthuridae,Brown Surgeonfish,0.66,23,15,345,836,398
+1247,Acanthuridae,Brown Surgeonfish,0.53,24,13,312,687,66
+2209,Acanthuridae,Brown Surgeonfish,0.66,22,14,308,15,505

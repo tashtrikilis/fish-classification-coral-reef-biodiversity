@@ -1,0 +1,17 @@
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/annotation_fix/1323_a_original.png}
+        \caption{Original Roboflow annotation}
+        \label{fig:annotation_fix_original}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figs/annotation_fix/1323_b_corrected.png}
+        \caption{Corrected annotation used in this study}
+        \label{fig:annotation_fix_corrected}
+    \end{subfigure}
+    \caption[Example of a corrected species label]{Example of a species label corrected during re-annotation (frame 1323, cropped). (a)~In the original Roboflow dataset, this fish is labelled with a bounding box as Brown Surgeonfish (\textit{Acanthurus nigrofuscus}). (b)~Its bright-yellow body identifies it as a Yellow Tang (\textit{Zebrasoma flavescens}), so it was relabelled and re-annotated with an instance-segmentation mask (outline) in CVAT.}
+    \label{fig:annotation_fix}
+\end{figure}

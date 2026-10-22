@@ -1,0 +1,22 @@
+#!/bin/bash -l
+#PBS -N cv_evaluate
+#PBS -l select=1:ncpus=2:mem=16GB
+#PBS -l walltime=08:00:00
+#PBS -m abe
+#PBS -M your_qut_id@qut.edu.au
+#PBS -j oe
+
+# Pools the 5 test folds and compares baseline vs copy-paste with bootstrap confidence intervals.
+# EVAL_SETS: which seed sets to evaluate, sets separated by '+', seeds within a set by ':'
+#   default "0" (round 4). The confirmation run uses "1+0:1+0": seed 1 alone (primary),
+#   seeds 0 and 1 averaged, and seed 0 again (so all three land in the W&B project).
+cd $PBS_O_WORKDIR
+_WB_OVERRIDE="${WANDB_PROJECT:-}"   # a W&B project passed with qsub -v wins over config.sh
+source ./config.sh
+if [ -n "$_WB_OVERRIDE" ]; then WANDB_PROJECT="$_WB_OVERRIDE"; fi
+module load Miniconda3
+source "$VENV/bin/activate"
+
+for SET in $(echo "${EVAL_SETS:-0}" | tr '+' ' '); do
+    python cv_evaluate.py --seeds "$(echo "$SET" | tr ':' ',')" --wandb-project "$WANDB_PROJECT"
+done
