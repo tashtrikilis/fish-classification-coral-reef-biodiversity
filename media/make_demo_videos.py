@@ -3,7 +3,8 @@
 Every frame shown is a TEST frame: it is predicted by the cross-validation fold model whose test set contains it,
 so neither model trained on it (and no donor was taken from it or from the 15-frame buffer around it).
 Model: YOLO26 Detection M, seed 0; predicted boxes with confidence >= 0.25.
-Drawn: every prediction. The video's species is orange; all other species are white (thinner boxes, smaller labels).
+Layout: baseline | augmented | ground truth (the manual labels), side by side.
+Drawn: every prediction / label. The video's species is orange; all other species are white (thinner boxes, smaller labels).
 
 The clips are illustrative: they were chosen as encounters where the baseline misses the fish and the augmented
 model finds it. They are not a random sample; the overall results are in ../results and ../supplementary_analysis.
@@ -71,19 +72,21 @@ def label(d, x, y, text, bg, fg, font=F_LAB, pad=5):
 
 
 def pane(f, arm, cid, title):
+    """arm = 'baseline' / 'copypaste' (predictions with confidence) or 'gt' (manual labels, name only)"""
     im = Image.open(a.images / f'frame_{f}.jpg').convert('RGB').resize((W, H), Image.LANCZOS)
     d = ImageDraw.Draw(im)
-    preds = PRED[arm].get(f, [])
+    preds = [(int(r[0]), None, r[1:]) for r in GT.get(f, [])] if arm == 'gt' else PRED[arm].get(f, [])
+    txt = lambda c, s: NAMES[c] if s is None else f'{NAMES[c]} {s:.2f}'
     others = [(c, s, b) for c, s, b in preds if c != cid]
     mine = [(c, s, b) for c, s, b in preds if c == cid]
     for c, s, b in others:                                   # other species first, so the focus species is on top
         x0, y0, x1, y1 = (float(v) * S for v in b)
         d.rectangle([x0, y0, x1, y1], outline=WHITE, width=2)
-        label(d, int(x0), int(y0), f'{NAMES[c]} {s:.2f}', WHITE, NAVY, F_SMALL, 3)
+        label(d, int(x0), int(y0), txt(c, s), WHITE, NAVY, F_SMALL, 3)
     for c, s, b in mine:
         x0, y0, x1, y1 = (float(v) * S for v in b)
         d.rectangle([x0, y0, x1, y1], outline=ORANGE, width=4)
-        label(d, int(x0), int(y0), f'{NAMES[c]} {s:.2f}', ORANGE, WHITE)
+        label(d, int(x0), int(y0), txt(c, s), ORANGE, WHITE)
     bar = Image.new('RGB', (W, BAR), NAVY); db = ImageDraw.Draw(bar)
     l, t, r, b = db.textbbox((0, 0), title, font=F_TITLE)
     db.text(((W - (r - l)) / 2 - l, (BAR - (b - t)) / 2 - t), title, font=F_TITLE, fill=WHITE)
@@ -99,9 +102,10 @@ for sp, clips in CLIPS.items():
             for f in range(f0, f1 + 1):
                 if not any(r[0] == cid for r in GT.get(f, [])):
                     continue
-                canvas = Image.new('RGB', (2 * W + GAP, BAR + H), NAVY)
+                canvas = Image.new('RGB', (3 * W + 2 * GAP, BAR + H), NAVY)   # three panes in a row
                 canvas.paste(pane(f, 'baseline', cid, f'Baseline ({MODEL})'), (0, 0))
                 canvas.paste(pane(f, 'copypaste', cid, f'Augmented ({MODEL})'), (W + GAP, 0))
+                canvas.paste(pane(f, 'gt', cid, 'Ground truth (manual labels)'), (2 * (W + GAP), 0))
                 canvas.save(f'{tmp}/{n:05d}.png'); n += 1
         out = a.out / f"demo_{sp.lower().replace(' ', '_')}.mp4"
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', str(1 / a.seconds_per_frame),
