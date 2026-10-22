@@ -4,7 +4,7 @@ Code, results and data for the QUT EGH490 project *Fish Classification for Coral
 (Natasha Trikilis, supervised by Dr Scarlett Raine, 2026), in collaboration with Project Ocean Oasis.
 
 The project evaluates [Ultralytics YOLO26](https://docs.ultralytics.com/) object detection and instance segmentation
-models on footage from a stationary reef camera at Kona, Hawaiʻi, and tests whether **targeted copy-paste augmentation**
+models on footage from a stationary reef camera at Kona, Hawaii, and tests whether **targeted copy-paste augmentation**
 improves recognition of under-represented fish species.
 
 - **RQ1:** How does species-level performance vary across YOLO-based detection and instance segmentation models of different sizes?
@@ -117,7 +117,7 @@ Versions used: Ultralytics 8.4.126, PyTorch 2.13.0, Python 3.13.5.
 
 ## Acknowledgements
 
-- **Footage:** the Aqualink / MEGA Lab reef camera at Kona, Hawaiʻi, via the [Coral Vision "Kona, Hawaii" dataset](https://universe.roboflow.com/coral-vision/kona--hawaii-dpgl0) (Roboflow Universe, CC0).
+- **Footage:** the Aqualink / MEGA Lab reef camera at Kona, Hawaii, via the [Coral Vision "Kona, Hawaii" dataset](https://universe.roboflow.com/coral-vision/kona--hawaii-dpgl0) (Roboflow Universe, CC0).
 - **Compute:** QUT eResearch, Aqua HPC.
 
 ## Licence
