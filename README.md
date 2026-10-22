@@ -35,7 +35,7 @@ random sample; see [`media/`](media/) for details.
 **Download:** `kona_reef_fish_dataset_v1.zip` from the
 [Releases page](https://github.com/tashtrikilis/fish-classification-coral-reef-biodiversity/releases) (about 240 MB).
 
-- **1,462 consecutive frames** (1000–2461, 1280 × 720) from the Coral Vision "Kona, Hawaii" dataset, sampled about
+- **1,462 consecutive frames** (1000–2461, 1280 × 720) from the [Coral Vision "Kona, Hawaii" dataset](https://universe.roboflow.com/coral-vision/kona--hawaii-dpgl0) on Roboflow Universe, sampled about
   every 2 seconds.
 - **4,098 instance masks** across **40 species** (58-class label list), re-annotated in CVAT. Bounding boxes are
   derived from the masks.
@@ -115,7 +115,7 @@ Versions used: Ultralytics 8.4.126, PyTorch 2.13.0, Python 3.13.5.
 
 ## Acknowledgements
 
-- **Footage:** the Aqualink / MEGA Lab reef camera at Kona, Hawaiʻi, via the Coral Vision dataset (Roboflow Universe, CC0).
+- **Footage:** the Aqualink / MEGA Lab reef camera at Kona, Hawaiʻi, via the [Coral Vision "Kona, Hawaii" dataset](https://universe.roboflow.com/coral-vision/kona--hawaii-dpgl0) (Roboflow Universe, CC0).
 - **Compute:** QUT eResearch, Aqua HPC.
 
 ## Licence
