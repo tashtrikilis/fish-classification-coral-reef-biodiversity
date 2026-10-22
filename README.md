@@ -52,7 +52,8 @@ and resized, and pasted into another training frame with the same camera view, w
 ![Copy-paste pipeline: donor frame, mask cut-out, receiver frame, augmented image](media/copy_paste_pipeline.png)
 
 **Cross-validation.** Neighbouring frames show the same fish, so the 1,462 frames are split into 30-frame blocks and
-the blocks into 5 folds. Frames within 15 frames of a test frame are left out of training.
+the blocks into 5 folds. Each row is one fold: the validation blocks are only used to pick the best epoch, and
+frames within 15 frames of a test frame (buffer) are left out of training.
 
 ![Five-fold temporal block cross-validation](media/cv_folds.png)
 
