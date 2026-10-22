@@ -2,6 +2,7 @@
 full_dataset/
 copy_paste_experiment/data_cv*/
 copy_paste_experiment/analysis_bundle/
+copy_paste_experiment/qa_preview/
 *.cache
 
 # Model weights and training outputs
